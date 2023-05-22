@@ -78,17 +78,18 @@ void ComponentInformationImpl::download_file_async(
         const auto maybe_tmp_path = create_tmp_directory("mavsdk-component-information-tmp-files");
         const auto path_to_download = maybe_tmp_path ? maybe_tmp_path.value() : "./";
 
-        _system_impl->mavlink_ftp().download_async(
+        _system_impl->mavlink_ftp_client().download_async(
             path,
             path_to_download,
             [path_to_download, callback, path](
-                MavlinkFtp::ClientResult download_result, MavlinkFtp::ProgressData progress_data) {
-                if (download_result == MavlinkFtp::ClientResult::Next) {
+                MavlinkFtpClient::ClientResult download_result,
+                MavlinkFtpClient::ProgressData progress_data) {
+                if (download_result == MavlinkFtpClient::ClientResult::Next) {
                     LogDebug() << "File download progress: " << progress_data.bytes_transferred
                                << '/' << progress_data.total_bytes;
                 } else {
                     LogDebug() << "File download ended with result " << download_result;
-                    if (download_result == MavlinkFtp::ClientResult::Success) {
+                    if (download_result == MavlinkFtpClient::ClientResult::Success) {
                         LogDebug() << "Received file " << path_to_download + "/" + path;
                         callback(path_to_download + "/" + path);
                     }

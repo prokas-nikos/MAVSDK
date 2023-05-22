@@ -24,10 +24,10 @@ namespace mavsdk {
 
 class SystemImpl;
 
-class MavlinkFtp {
+class MavlinkFtpClient {
 public:
-    explicit MavlinkFtp(SystemImpl& system_impl);
-    ~MavlinkFtp();
+    explicit MavlinkFtpClient(SystemImpl& system_impl);
+    ~MavlinkFtpClient();
 
     /**
      * @brief Possible results returned for FTP commands

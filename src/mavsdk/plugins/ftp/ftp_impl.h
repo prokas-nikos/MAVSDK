@@ -68,9 +68,9 @@ public:
     Ftp::Result set_target_compid(uint8_t component_id);
 
 private:
-    Ftp::Result result_from_mavlink_ftp_result(MavlinkFtp::ClientResult result);
+    Ftp::Result result_from_mavlink_ftp_result(MavlinkFtpClient::ClientResult result);
     Ftp::ProgressData
-    progress_data_from_mavlink_ftp_progress_data(MavlinkFtp::ProgressData progress_data);
+    progress_data_from_mavlink_ftp_progress_data(MavlinkFtpClient::ProgressData progress_data);
 };
 
 } // namespace mavsdk

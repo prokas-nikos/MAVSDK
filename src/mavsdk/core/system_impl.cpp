@@ -33,7 +33,7 @@ SystemImpl::SystemImpl(MavsdkImpl& parent) :
         [this]() { return timeout_s(); }),
     _request_message(
         *this, _command_sender, _mavsdk_impl.mavlink_message_handler, _mavsdk_impl.timeout_handler),
-    _mavlink_ftp(*this)
+    _mavlink_ftp_client(*this)
 {
     _system_thread = new std::thread(&SystemImpl::system_thread, this);
 }
