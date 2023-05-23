@@ -42,6 +42,8 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     if (msg.msgid != MAVLINK_MSG_ID_FILE_TRANSFER_PROTOCOL) {
         return;
     }
+    LogDebug() << "not processing message";
+    return;
 
     bool stream_send = false;
     mavlink_file_transfer_protocol_t ftp_req;
@@ -60,11 +62,8 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     if (payload->size > max_data_length) {
         error_code = ServerResult::ERR_INVALID_DATA_SIZE;
     } else {
-        /*
-            LogDebug() << "ftp - opc: " << (int)payload->opcode << " size: "
-                << (int)payload->size << " offset: " << (int)payload->offset << " seq: " <<
-        payload->seq_number;
-        */
+        LogDebug() << "ftp - opc: " << (int)payload->opcode << " size: " << (int)payload->size
+                   << " offset: " << (int)payload->offset << " seq: " << payload->seq_number;
 
         // check the sequence number: if this is a resent request, resend the last response
         if (_last_reply_valid) {
@@ -498,6 +497,7 @@ void MavlinkFtpClient::download_async(
 
     std::string local_path = local_folder + path_separator + fs_filename(remote_path);
 
+    LogDebug() << "Trying to open write to local path: " << local_path;
     _ofstream.stream.open(local_path, std::fstream::trunc | std::fstream::binary);
     _ofstream.path = local_path;
     if (!_ofstream.stream) {
@@ -1061,6 +1061,7 @@ MavlinkFtpClient::ServerResult MavlinkFtpClient::_work_open(PayloadHeader* paylo
     // }
 
     // fail only if requested open for read
+    LogDebug() << "oflag: " << oflag;
     if ((oflag & O_ACCMODE) == O_RDONLY && !fs_exists(path)) {
         LogWarn() << "FTP: Open failed - file not found";
         return ServerResult::ERR_FAIL_FILE_DOES_NOT_EXIST;
