@@ -42,8 +42,6 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     if (msg.msgid != MAVLINK_MSG_ID_FILE_TRANSFER_PROTOCOL) {
         return;
     }
-    LogDebug() << "not processing message";
-    return;
 
     bool stream_send = false;
     mavlink_file_transfer_protocol_t ftp_req;
@@ -90,66 +88,66 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                 error_code = _work_reset(payload);
                 break;
 
-            case CMD_LIST_DIRECTORY:
-                LogInfo() << "OPC:CMD_LIST_DIRECTORY";
-                error_code = _work_list(payload);
-                break;
+                // case CMD_LIST_DIRECTORY:
+                //    LogInfo() << "OPC:CMD_LIST_DIRECTORY";
+                //    error_code = _work_list(payload);
+                //    break;
 
-            case CMD_OPEN_FILE_RO:
-                LogInfo() << "OPC:CMD_OPEN_FILE_RO";
-                error_code = _work_open(payload, O_RDONLY);
-                break;
+                // case CMD_OPEN_FILE_RO:
+                //    LogInfo() << "OPC:CMD_OPEN_FILE_RO";
+                //    error_code = _work_open(payload, O_RDONLY);
+                //    break;
 
-            case CMD_CREATE_FILE:
-                LogInfo() << "OPC:CMD_CREATE_FILE";
-                error_code = _work_open(payload, O_CREAT | O_TRUNC | O_WRONLY);
-                break;
+                // case CMD_CREATE_FILE:
+                //    LogInfo() << "OPC:CMD_CREATE_FILE";
+                //    error_code = _work_open(payload, O_CREAT | O_TRUNC | O_WRONLY);
+                //    break;
 
-            case CMD_OPEN_FILE_WO:
-                LogInfo() << "OPC:CMD_OPEN_FILE_WO";
-                error_code = _work_open(payload, O_CREAT | O_WRONLY);
-                break;
+                // case CMD_OPEN_FILE_WO:
+                //    LogInfo() << "OPC:CMD_OPEN_FILE_WO";
+                //    error_code = _work_open(payload, O_CREAT | O_WRONLY);
+                //    break;
 
-            case CMD_READ_FILE:
-                LogInfo() << "OPC:CMD_READ_FILE";
-                error_code = _work_read(payload);
-                break;
+                // case CMD_READ_FILE:
+                //    LogInfo() << "OPC:CMD_READ_FILE";
+                //    error_code = _work_read(payload);
+                //    break;
 
-            case CMD_BURST_READ_FILE:
-                LogInfo() << "OPC:CMD_BURST_READ_FILE";
-                error_code = _work_burst(payload);
-                stream_send = true;
-                break;
+                // case CMD_BURST_READ_FILE:
+                //    LogInfo() << "OPC:CMD_BURST_READ_FILE";
+                //    error_code = _work_burst(payload);
+                //    stream_send = true;
+                //    break;
 
-            case CMD_WRITE_FILE:
-                LogInfo() << "OPC:CMD_WRITE_FILE";
-                error_code = _work_write(payload);
-                break;
+                // case CMD_WRITE_FILE:
+                //    LogInfo() << "OPC:CMD_WRITE_FILE";
+                //    error_code = _work_write(payload);
+                //    break;
 
-            case CMD_REMOVE_FILE:
-                LogInfo() << "OPC:CMD_REMOVE_FILE";
-                error_code = _work_remove_file(payload);
-                break;
+                // case CMD_REMOVE_FILE:
+                //    LogInfo() << "OPC:CMD_REMOVE_FILE";
+                //    error_code = _work_remove_file(payload);
+                //    break;
 
-            case CMD_RENAME:
-                LogInfo() << "OPC:CMD_RENAME";
-                error_code = _work_rename(payload);
-                break;
+                // case CMD_RENAME:
+                //    LogInfo() << "OPC:CMD_RENAME";
+                //    error_code = _work_rename(payload);
+                //    break;
 
-            case CMD_CREATE_DIRECTORY:
-                LogInfo() << "OPC:CMD_CREATE_DIRECTORY";
-                error_code = _work_create_directory(payload);
-                break;
+                // case CMD_CREATE_DIRECTORY:
+                //    LogInfo() << "OPC:CMD_CREATE_DIRECTORY";
+                //    error_code = _work_create_directory(payload);
+                //    break;
 
-            case CMD_REMOVE_DIRECTORY:
-                LogInfo() << "OPC:CMD_REMOVE_DIRECTORY";
-                error_code = _work_remove_directory(payload);
-                break;
+                // case CMD_REMOVE_DIRECTORY:
+                //    LogInfo() << "OPC:CMD_REMOVE_DIRECTORY";
+                //    error_code = _work_remove_directory(payload);
+                //    break;
 
-            case CMD_CALC_FILE_CRC32:
-                LogInfo() << "OPC:CMD_CALC_FILE_CRC32";
-                error_code = _work_calc_file_CRC32(payload);
-                break;
+                // case CMD_CALC_FILE_CRC32:
+                //    LogInfo() << "OPC:CMD_CALC_FILE_CRC32";
+                //    error_code = _work_calc_file_CRC32(payload);
+                //    break;
 
             case RSP_ACK:
                 _process_ack(payload);
@@ -159,10 +157,10 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                 _process_nak(payload);
                 return;
 
-            default:
-                LogWarn() << "OPC:Unknown command: " << static_cast<int>(payload->opcode);
-                error_code = ServerResult::ERR_UNKOWN_COMMAND;
-                break;
+                // default:
+                //    LogWarn() << "OPC:Unknown command: " << static_cast<int>(payload->opcode);
+                //    error_code = ServerResult::ERR_UNKOWN_COMMAND;
+                //    break;
         }
     }
 

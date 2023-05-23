@@ -22,11 +22,11 @@
 
 namespace mavsdk {
 
-class SystemImpl;
+class ServerComponentImpl;
 
 class MavlinkFtpServer {
 public:
-    explicit MavlinkFtpServer(SystemImpl& system_impl);
+    explicit MavlinkFtpServer(ServerComponentImpl& server_component_impl);
     ~MavlinkFtpServer();
 
     /**
@@ -94,13 +94,11 @@ public:
 
     void set_retries(uint32_t retries) { _max_last_command_retries = retries; }
     ClientResult set_root_directory(const std::string& root_dir);
-    uint8_t get_our_compid();
-    ClientResult set_target_compid(uint8_t component_id);
 
     std::optional<std::string> write_tmp_file(const std::string& path, const std::string& content);
 
 private:
-    SystemImpl& _system_impl;
+    ServerComponentImpl& _server_component_impl;
 
     /// @brief Possible server results returned for requests.
     enum ServerResult : uint8_t {
@@ -249,7 +247,6 @@ private:
     void _reset_timer();
     void _stop_timer();
     void _list_directory(uint32_t offset);
-    uint8_t _get_target_component_id();
 
     // prepend a root directory to each file/dir access to avoid enumerating the full FS tree
     std::string _root_dir{"."};
