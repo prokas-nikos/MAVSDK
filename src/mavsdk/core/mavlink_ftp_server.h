@@ -249,7 +249,7 @@ private:
     void _list_directory(uint32_t offset);
 
     // prepend a root directory to each file/dir access to avoid enumerating the full FS tree
-    std::string _root_dir{"."};
+    std::string _root_dir{};
 
     bool _last_reply_valid = false;
     uint16_t _last_reply_seq = 0;

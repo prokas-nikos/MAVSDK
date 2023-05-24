@@ -17,11 +17,11 @@ public:
     void init() override;
     void deinit() override;
 
-    FtpServer::Result provide_file(const std::string& path);
+    FtpServer::Result set_root_dir(const std::string& path);
 
 private:
-    std::mutex _saved_paths_mutex{};
-    std::vector<std::string> _saved_paths{};
+    std::mutex _root_dir_mutex{};
+    std::string _root_dir{};
 };
 
 } // namespace mavsdk

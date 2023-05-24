@@ -109,26 +109,46 @@ TEST(SystemTest, FtpDownloadFile)
 
     auto ftp = Ftp{system};
 
-    auto prom = std::promise<Ftp::Result>();
-    auto fut = prom.get_future();
-    ftp.download_async(
-        temp_dir_provided / temp_file,
-        temp_dir_downloaded,
-        [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
-            if (result != Ftp::Result::Next) {
+    // First we try to access the file without the root directory set.
+    // We expect that it does not exist as we don't have any permission.
+    {
+        auto prom = std::promise<Ftp::Result>();
+        auto fut = prom.get_future();
+        ftp.download_async(
+            "" / temp_file, temp_dir_downloaded, [&prom](Ftp::Result result, Ftp::ProgressData) {
                 prom.set_value(result);
-            } else {
-                LogDebug() << "Download progress: " << progress_data.bytes_transferred << "/"
-                           << progress_data.total_bytes << " bytes";
-            }
-        });
+            });
 
-    auto future_status = fut.wait_for(std::chrono::seconds(1));
-    ASSERT_EQ(future_status, std::future_status::ready);
-    EXPECT_EQ(fut.get(), Ftp::Result::Success);
+        auto future_status = fut.wait_for(std::chrono::seconds(1));
+        ASSERT_EQ(future_status, std::future_status::ready);
+        EXPECT_EQ(fut.get(), Ftp::Result::FileDoesNotExist);
+    }
 
-    EXPECT_TRUE(
-        are_files_identical(temp_dir_provided / temp_file, temp_dir_downloaded / temp_file));
+    // Now we set the root dir and expect it to work.
+    ftp_server.set_root_dir(temp_dir_provided);
+
+    {
+        auto prom = std::promise<Ftp::Result>();
+        auto fut = prom.get_future();
+        ftp.download_async(
+            "" / temp_file,
+            temp_dir_downloaded,
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+                if (result != Ftp::Result::Next) {
+                    prom.set_value(result);
+                } else {
+                    LogDebug() << "Download progress: " << progress_data.bytes_transferred << "/"
+                               << progress_data.total_bytes << " bytes";
+                }
+            });
+
+        auto future_status = fut.wait_for(std::chrono::seconds(1));
+        ASSERT_EQ(future_status, std::future_status::ready);
+        EXPECT_EQ(fut.get(), Ftp::Result::Success);
+
+        EXPECT_TRUE(
+            are_files_identical(temp_dir_provided / temp_file, temp_dir_downloaded / temp_file));
+    }
 }
 
 TEST(SystemTest, FtpDownloadBigFile)
@@ -150,6 +170,8 @@ TEST(SystemTest, FtpDownloadBigFile)
     auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
 
+    ftp_server.set_root_dir(temp_dir_provided);
+
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
     auto system = maybe_system.value();
@@ -164,7 +186,7 @@ TEST(SystemTest, FtpDownloadBigFile)
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
     ftp.download_async(
-        temp_dir_provided / temp_file,
+        "" / temp_file,
         temp_dir_downloaded,
         [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (result != Ftp::Result::Next) {

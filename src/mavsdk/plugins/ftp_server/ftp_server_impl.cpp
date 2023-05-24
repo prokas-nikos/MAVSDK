@@ -17,20 +17,12 @@ void FtpServerImpl::init() {}
 
 void FtpServerImpl::deinit() {}
 
-FtpServer::Result FtpServerImpl::provide_file(const std::string& path)
+FtpServer::Result FtpServerImpl::set_root_dir(const std::string& path)
 {
-    std::lock_guard<std::mutex> lock(_saved_paths_mutex);
+    // TODO: only do this when the server is not busy.
+    // TODO: check if it exists
 
-    const auto found =
-        std::find_if(_saved_paths.begin(), _saved_paths.end(), [&path](const std::string& item) {
-            return item == path;
-        }) != _saved_paths.end();
-
-    if (found) {
-        return FtpServer::Result::Duplicate;
-    }
-
-    _saved_paths.push_back(path);
+    _server_component_impl->mavlink_ftp_server().set_root_directory(path);
 
     return FtpServer::Result::Success;
 }

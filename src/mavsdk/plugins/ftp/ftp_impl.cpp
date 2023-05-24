@@ -63,6 +63,7 @@ void FtpImpl::download_async(
         local_folder,
         [callback, this](
             MavlinkFtpClient::ClientResult result, MavlinkFtpClient::ProgressData progress_data) {
+            LogDebug() << "Got client result: " << result;
             callback(
                 result_from_mavlink_ftp_result(result),
                 progress_data_from_mavlink_ftp_progress_data(progress_data));

@@ -79,6 +79,11 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
             }
         }
 
+        if (_curr_op != payload->req_opcode) {
+            // LogWarn() << "Received ACK not matching our current operation";
+            return;
+        }
+
         switch (payload->opcode) {
             case CMD_NONE:
                 LogInfo() << "OPC:CMD_NONE";
@@ -230,7 +235,7 @@ void MavlinkFtpServer::_process_ack(PayloadHeader* payload)
     }
 
     if (_curr_op != payload->req_opcode) {
-        LogWarn() << "Received ACK not matching our current operation";
+        // LogWarn() << "Received ACK not matching our current operation";
         return;
     }
 
@@ -963,7 +968,7 @@ MavlinkFtpServer::ClientResult MavlinkFtpServer::set_root_directory(const std::s
 
 std::string MavlinkFtpServer::_get_path(const std::string& payload_path)
 {
-    return fs_canonical(/*_root_dir + path_separator + */ payload_path);
+    return fs_canonical(_root_dir + path_separator + payload_path);
 }
 
 std::string MavlinkFtpServer::_get_rel_path(const std::string& path)
@@ -1049,12 +1054,12 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
         if (it != _tmp_files.end()) {
             return it->second;
         } else {
-            return _get_path(payload);
+            return _root_dir.empty() ? "" : _get_path(payload);
         }
     }();
 
     if (path.empty()) {
-        return ServerResult::ERR_FAIL;
+        return ServerResult::ERR_FAIL_FILE_DOES_NOT_EXIST;
     }
 
     // TODO: check again

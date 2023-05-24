@@ -73,6 +73,11 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
             }
         }
 
+        if (_curr_op != payload->req_opcode) {
+            // LogWarn() << "Received ACK not matching our current operation";
+            return;
+        }
+
         switch (payload->opcode) {
             case CMD_NONE:
                 LogInfo() << "OPC:CMD_NONE";
@@ -224,7 +229,7 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
     }
 
     if (_curr_op != payload->req_opcode) {
-        LogWarn() << "Received ACK not matching our current operation";
+        // LogWarn() << "Received ACK not matching our current operation";
         return;
     }
 
@@ -328,6 +333,7 @@ void MavlinkFtpClient::_process_nak(PayloadHeader* payload)
 {
     if (payload != nullptr) {
         ServerResult sr = static_cast<ServerResult>(payload->data[0]);
+        LogWarn() << "Got nack: " << std::to_string(sr);
         // PX4 Mavlink FTP returns "File doesn't exist" this way
         if (sr == ServerResult::ERR_FAIL_ERRNO && payload->data[1] == ENOENT) {
             sr = ServerResult::ERR_FAIL_FILE_DOES_NOT_EXIST;
@@ -353,6 +359,8 @@ void MavlinkFtpClient::_process_nak(ServerResult result)
             } else {
                 _stop_timer();
                 _call_op_result_callback(_session_result);
+                // TODO: is this right?
+                _end_read_session(true);
             }
             break;
 
@@ -459,6 +467,7 @@ MavlinkFtpClient::ClientResult MavlinkFtpClient::_translate(ServerResult result)
         case ServerResult::ERR_UNKOWN_COMMAND:
             return ClientResult::Unsupported;
         case ServerResult::ERR_FAIL_FILE_DOES_NOT_EXIST:
+            LogErr() << "DOES NOT EXIST";
             return ClientResult::FileDoesNotExist;
         default:
             return ClientResult::ProtocolError;
@@ -499,6 +508,7 @@ void MavlinkFtpClient::download_async(
     _ofstream.stream.open(local_path, std::fstream::trunc | std::fstream::binary);
     _ofstream.path = local_path;
     if (!_ofstream.stream) {
+        LogErr() << "Could not open it!";
         _end_read_session();
         ProgressData empty{};
         callback(ClientResult::FileIoError, empty);

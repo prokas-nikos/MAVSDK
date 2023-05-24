@@ -21,6 +21,7 @@ namespace _pbi = ::PROTOBUF_NAMESPACE_ID::internal;
 namespace mavsdk {
 namespace rpc {
 namespace ftp_server {
+<<<<<<< HEAD
 template <typename>
 PROTOBUF_CONSTEXPR SetRootDirRequest::SetRootDirRequest(
     ::_pbi::ConstantInitialized): _impl_{
@@ -31,11 +32,20 @@ PROTOBUF_CONSTEXPR SetRootDirRequest::SetRootDirRequest(
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SetRootDirRequestDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SetRootDirRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+=======
+PROTOBUF_CONSTEXPR SetRootDirRequest::SetRootDirRequest(
+    ::_pbi::ConstantInitialized)
+  : path_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}){}
+struct SetRootDirRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SetRootDirRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+>>>>>>> 7309a30a (Download and set_root_dir working)
   ~SetRootDirRequestDefaultTypeInternal() {}
   union {
     SetRootDirRequest _instance;
   };
 };
+<<<<<<< HEAD
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SetRootDirRequestDefaultTypeInternal _SetRootDirRequest_default_instance_;
@@ -47,15 +57,28 @@ PROTOBUF_CONSTEXPR SetRootDirResponse::SetRootDirResponse(
   , /*decltype(_impl_.ftp_server_result_)*/nullptr} {}
 struct SetRootDirResponseDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SetRootDirResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+=======
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SetRootDirRequestDefaultTypeInternal _SetRootDirRequest_default_instance_;
+PROTOBUF_CONSTEXPR SetRootDirResponse::SetRootDirResponse(
+    ::_pbi::ConstantInitialized)
+  : ftp_server_result_(nullptr){}
+struct SetRootDirResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SetRootDirResponseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+>>>>>>> 7309a30a (Download and set_root_dir working)
   ~SetRootDirResponseDefaultTypeInternal() {}
   union {
     SetRootDirResponse _instance;
   };
 };
+<<<<<<< HEAD
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SetRootDirResponseDefaultTypeInternal _SetRootDirResponse_default_instance_;
 template <typename>
+=======
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SetRootDirResponseDefaultTypeInternal _SetRootDirResponse_default_instance_;
+>>>>>>> 7309a30a (Download and set_root_dir working)
 PROTOBUF_CONSTEXPR FtpServerResult::FtpServerResult(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.result_str_)*/ {
@@ -80,6 +103,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
 }  // namespace mavsdk
 static ::_pb::Metadata file_level_metadata_ftp_5fserver_2fftp_5fserver_2eproto[3];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_ftp_5fserver_2fftp_5fserver_2eproto[1];
+<<<<<<< HEAD
 static constexpr const ::_pb::ServiceDescriptor**
     file_level_service_descriptors_ftp_5fserver_2fftp_5fserver_2eproto = nullptr;
 const ::uint32_t TableStruct_ftp_5fserver_2fftp_5fserver_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
@@ -143,6 +167,65 @@ const char descriptor_table_protodef_ftp_5fserver_2fftp_5fserver_2eproto[] PROTO
     ".rpc.ftp_server.SetRootDirResponse\"\004\200\265\030\001"
     "B&\n\024io.mavsdk.ftp_serverB\016FtpServerProto"
     "b\006proto3"
+=======
+static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_ftp_5fserver_2fftp_5fserver_2eproto = nullptr;
+
+const uint32_t TableStruct_ftp_5fserver_2fftp_5fserver_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::SetRootDirRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::SetRootDirRequest, path_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::SetRootDirResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::SetRootDirResponse, ftp_server_result_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::FtpServerResult, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::FtpServerResult, result_),
+  PROTOBUF_FIELD_OFFSET(::mavsdk::rpc::ftp_server::FtpServerResult, result_str_),
+};
+static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  { 0, -1, -1, sizeof(::mavsdk::rpc::ftp_server::SetRootDirRequest)},
+  { 7, -1, -1, sizeof(::mavsdk::rpc::ftp_server::SetRootDirResponse)},
+  { 14, -1, -1, sizeof(::mavsdk::rpc::ftp_server::FtpServerResult)},
+};
+
+static const ::_pb::Message* const file_default_instances[] = {
+  &::mavsdk::rpc::ftp_server::_SetRootDirRequest_default_instance_._instance,
+  &::mavsdk::rpc::ftp_server::_SetRootDirResponse_default_instance_._instance,
+  &::mavsdk::rpc::ftp_server::_FtpServerResult_default_instance_._instance,
+};
+
+const char descriptor_table_protodef_ftp_5fserver_2fftp_5fserver_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
+  "\n\033ftp_server/ftp_server.proto\022\025mavsdk.rp"
+  "c.ftp_server\032\024mavsdk_options.proto\"!\n\021Se"
+  "tRootDirRequest\022\014\n\004path\030\001 \001(\t\"W\n\022SetRoot"
+  "DirResponse\022A\n\021ftp_server_result\030\001 \001(\0132&"
+  ".mavsdk.rpc.ftp_server.FtpServerResult\"\302"
+  "\001\n\017FtpServerResult\022=\n\006result\030\001 \001(\0162-.mav"
+  "sdk.rpc.ftp_server.FtpServerResult.Resul"
+  "t\022\022\n\nresult_str\030\002 \001(\t\"\\\n\006Result\022\022\n\016RESUL"
+  "T_UNKNOWN\020\000\022\022\n\016RESULT_SUCCESS\020\001\022\031\n\025RESUL"
+  "T_DOES_NOT_EXIST\020\002\022\017\n\013RESULT_BUSY\020\0032{\n\020F"
+  "tpServerService\022g\n\nSetRootDir\022(.mavsdk.r"
+  "pc.ftp_server.SetRootDirRequest\032).mavsdk"
+  ".rpc.ftp_server.SetRootDirResponse\"\004\200\265\030\001"
+  "B&\n\024io.mavsdk.ftp_serverB\016FtpServerProto"
+  "b\006proto3"
+  ;
+static const ::_pbi::DescriptorTable* const descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto_deps[1] = {
+  &::descriptor_table_mavsdk_5foptions_2eproto,
+>>>>>>> 7309a30a (Download and set_root_dir working)
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto_deps[1] =
     {
@@ -150,10 +233,14 @@ static const ::_pbi::DescriptorTable* const descriptor_table_ftp_5fserver_2fftp_
 };
 static ::absl::once_flag descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto = {
+<<<<<<< HEAD
     false,
     false,
     568,
     descriptor_table_protodef_ftp_5fserver_2fftp_5fserver_2eproto,
+=======
+    false, false, 568, descriptor_table_protodef_ftp_5fserver_2fftp_5fserver_2eproto,
+>>>>>>> 7309a30a (Download and set_root_dir working)
     "ftp_server/ftp_server.proto",
     &descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto_once,
     descriptor_table_ftp_5fserver_2fftp_5fserver_2eproto_deps,
@@ -221,9 +308,16 @@ class SetRootDirRequest::_Internal {
  public:
 };
 
+<<<<<<< HEAD
 SetRootDirRequest::SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
   SharedCtor(arena);
+=======
+SetRootDirRequest::SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor();
+>>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(arena_constructor:mavsdk.rpc.ftp_server.SetRootDirRequest)
 }
 SetRootDirRequest::SetRootDirRequest(const SetRootDirRequest& from)
@@ -245,6 +339,7 @@ SetRootDirRequest::SetRootDirRequest(const SetRootDirRequest& from)
   // @@protoc_insertion_point(copy_constructor:mavsdk.rpc.ftp_server.SetRootDirRequest)
 }
 
+<<<<<<< HEAD
 inline void SetRootDirRequest::SharedCtor(::_pb::Arena* arena) {
   (void)arena;
   new (&_impl_) Impl_{
@@ -256,6 +351,13 @@ inline void SetRootDirRequest::SharedCtor(::_pb::Arena* arena) {
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
         _impl_.path_.Set("", GetArenaForAllocation());
   #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+=======
+inline void SetRootDirRequest::SharedCtor() {
+path_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  path_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+>>>>>>> 7309a30a (Download and set_root_dir working)
 }
 
 SetRootDirRequest::~SetRootDirRequest() {
@@ -268,17 +370,30 @@ SetRootDirRequest::~SetRootDirRequest() {
 }
 
 inline void SetRootDirRequest::SharedDtor() {
+<<<<<<< HEAD
   ABSL_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.path_.Destroy();
 }
 
 void SetRootDirRequest::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
+=======
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  path_.Destroy();
+}
+
+void SetRootDirRequest::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+>>>>>>> 7309a30a (Download and set_root_dir working)
 }
 
 void SetRootDirRequest::Clear() {
 // @@protoc_insertion_point(message_clear_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
+<<<<<<< HEAD
   ::uint32_t cached_has_bits = 0;
+=======
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -299,7 +414,11 @@ const char* SetRootDirRequest::_InternalParse(const char* ptr, ::_pbi::ParseCont
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "mavsdk.rpc.ftp_server.SetRootDirRequest.path"));
+<<<<<<< HEAD
         } else {
+=======
+        } else
+>>>>>>> 7309a30a (Download and set_root_dir working)
           goto handle_unusual;
         }
         continue;
@@ -326,18 +445,33 @@ failure:
 #undef CHK_
 }
 
+<<<<<<< HEAD
 ::uint8_t* SetRootDirRequest::_InternalSerialize(
     ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
   ::uint32_t cached_has_bits = 0;
+=======
+uint8_t* SetRootDirRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   (void) cached_has_bits;
 
   // string path = 1;
   if (!this->_internal_path().empty()) {
     const std::string& _s = this->_internal_path();
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+<<<<<<< HEAD
         _s.data(), static_cast<int>(_s.length()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE, "mavsdk.rpc.ftp_server.SetRootDirRequest.path");
     target = stream->WriteStringMaybeAliased(1, _s, target);
+=======
+      this->_internal_path().data(), static_cast<int>(this->_internal_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "mavsdk.rpc.ftp_server.SetRootDirRequest.path");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_path(), target);
+>>>>>>> 7309a30a (Download and set_root_dir working)
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -348,9 +482,15 @@ failure:
   return target;
 }
 
+<<<<<<< HEAD
 ::size_t SetRootDirRequest::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
   ::size_t total_size = 0;
+=======
+size_t SetRootDirRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
+  size_t total_size = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
 
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -366,6 +506,7 @@ failure:
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData SetRootDirRequest::_class_data_ = {
+<<<<<<< HEAD
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
     SetRootDirRequest::MergeImpl
 };
@@ -378,6 +519,24 @@ void SetRootDirRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, cons
   // @@protoc_insertion_point(class_specific_merge_from_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
+=======
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    SetRootDirRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*SetRootDirRequest::GetClassData() const { return &_class_data_; }
+
+void SetRootDirRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<SetRootDirRequest *>(to)->MergeFrom(
+      static_cast<const SetRootDirRequest &>(from));
+}
+
+
+void SetRootDirRequest::MergeFrom(const SetRootDirRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:mavsdk.rpc.ftp_server.SetRootDirRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   (void) cached_has_bits;
 
   if (!from._internal_path().empty()) {
@@ -415,6 +574,7 @@ void SetRootDirRequest::InternalSwap(SetRootDirRequest* other) {
 
 class SetRootDirResponse::_Internal {
  public:
+<<<<<<< HEAD
   using HasBits = decltype(std::declval<SetRootDirResponse>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
     8 * PROTOBUF_FIELD_OFFSET(SetRootDirResponse, _impl_._has_bits_);
@@ -422,15 +582,27 @@ class SetRootDirResponse::_Internal {
   static void set_has_ftp_server_result(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
+=======
+  static const ::mavsdk::rpc::ftp_server::FtpServerResult& ftp_server_result(const SetRootDirResponse* msg);
+>>>>>>> 7309a30a (Download and set_root_dir working)
 };
 
 const ::mavsdk::rpc::ftp_server::FtpServerResult&
 SetRootDirResponse::_Internal::ftp_server_result(const SetRootDirResponse* msg) {
+<<<<<<< HEAD
   return *msg->_impl_.ftp_server_result_;
 }
 SetRootDirResponse::SetRootDirResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
   SharedCtor(arena);
+=======
+  return *msg->ftp_server_result_;
+}
+SetRootDirResponse::SetRootDirResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor();
+>>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(arena_constructor:mavsdk.rpc.ftp_server.SetRootDirResponse)
 }
 SetRootDirResponse::SetRootDirResponse(const SetRootDirResponse& from)
@@ -448,6 +620,7 @@ SetRootDirResponse::SetRootDirResponse(const SetRootDirResponse& from)
   // @@protoc_insertion_point(copy_constructor:mavsdk.rpc.ftp_server.SetRootDirResponse)
 }
 
+<<<<<<< HEAD
 inline void SetRootDirResponse::SharedCtor(::_pb::Arena* arena) {
   (void)arena;
   new (&_impl_) Impl_{
@@ -455,6 +628,10 @@ inline void SetRootDirResponse::SharedCtor(::_pb::Arena* arena) {
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.ftp_server_result_){nullptr}
   };
+=======
+inline void SetRootDirResponse::SharedCtor() {
+ftp_server_result_ = nullptr;
+>>>>>>> 7309a30a (Download and set_root_dir working)
 }
 
 SetRootDirResponse::~SetRootDirResponse() {
@@ -467,17 +644,30 @@ SetRootDirResponse::~SetRootDirResponse() {
 }
 
 inline void SetRootDirResponse::SharedDtor() {
+<<<<<<< HEAD
   ABSL_DCHECK(GetArenaForAllocation() == nullptr);
   if (this != internal_default_instance()) delete _impl_.ftp_server_result_;
 }
 
 void SetRootDirResponse::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
+=======
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  if (this != internal_default_instance()) delete ftp_server_result_;
+}
+
+void SetRootDirResponse::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+>>>>>>> 7309a30a (Download and set_root_dir working)
 }
 
 void SetRootDirResponse::Clear() {
 // @@protoc_insertion_point(message_clear_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
+<<<<<<< HEAD
   ::uint32_t cached_has_bits = 0;
+=======
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -530,10 +720,17 @@ failure:
 #undef CHK_
 }
 
+<<<<<<< HEAD
 ::uint8_t* SetRootDirResponse::_InternalSerialize(
     ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
   ::uint32_t cached_has_bits = 0;
+=======
+uint8_t* SetRootDirResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
@@ -552,9 +749,15 @@ failure:
   return target;
 }
 
+<<<<<<< HEAD
 ::size_t SetRootDirResponse::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
   ::size_t total_size = 0;
+=======
+size_t SetRootDirResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
+  size_t total_size = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
 
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -572,6 +775,7 @@ failure:
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData SetRootDirResponse::_class_data_ = {
+<<<<<<< HEAD
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
     SetRootDirResponse::MergeImpl
 };
@@ -584,6 +788,24 @@ void SetRootDirResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   // @@protoc_insertion_point(class_specific_merge_from_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
+=======
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    SetRootDirResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*SetRootDirResponse::GetClassData() const { return &_class_data_; }
+
+void SetRootDirResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<SetRootDirResponse *>(to)->MergeFrom(
+      static_cast<const SetRootDirResponse &>(from));
+}
+
+
+void SetRootDirResponse::MergeFrom(const SetRootDirResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:mavsdk.rpc.ftp_server.SetRootDirResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  uint32_t cached_has_bits = 0;
+>>>>>>> 7309a30a (Download and set_root_dir working)
   (void) cached_has_bits;
 
   if ((from._impl_._has_bits_[0] & 0x00000001u) != 0) {
