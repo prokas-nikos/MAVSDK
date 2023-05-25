@@ -817,6 +817,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
         //return ServerResult::ERR_NO_SESSIONS_AVAILABLE;
     }
 
+    LogWarn() << (_root_dir.empty() ? "EMPTY" : "not empty");
+
     std::string path = [payload, this]() {
         std::lock_guard<std::mutex> lock(_tmp_files_mutex);
         const auto it = _tmp_files.find(_data_as_string(payload));

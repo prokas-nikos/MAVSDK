@@ -334,6 +334,7 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
 
 void MavlinkFtpClient::_process_nak(PayloadHeader* payload)
 {
+    LogErr() << "Process nak! ";
     if (payload != nullptr) {
         ServerResult sr = static_cast<ServerResult>(payload->data[0]);
         LogWarn() << "Got nack: " << std::to_string(sr);
@@ -347,6 +348,8 @@ void MavlinkFtpClient::_process_nak(PayloadHeader* payload)
 
 void MavlinkFtpClient::_process_nak(ServerResult result)
 {
+    LogErr() << "Got nak! " << int(_curr_op);
+
     std::lock_guard<std::mutex> lock(_curr_op_mutex);
     switch (_curr_op) {
         case CMD_NONE:
@@ -372,6 +375,7 @@ void MavlinkFtpClient::_process_nak(ServerResult result)
             if (_session_valid) {
                 _end_write_session();
             } else {
+                LogErr() << "DONE with nak";
                 _call_op_result_callback(_session_result);
             }
             break;
@@ -561,15 +565,18 @@ void MavlinkFtpClient::_read()
 void MavlinkFtpClient::upload_async(
     const std::string& local_file_path, const std::string& remote_folder, UploadCallback callback)
 {
+    _active = true;
     std::lock_guard<std::mutex> lock(_curr_op_mutex);
     if (_curr_op != CMD_NONE) {
         ProgressData empty{};
+        _active = false;
         callback(ClientResult::Busy, empty);
         return;
     }
 
     if (!fs_exists(local_file_path)) {
         ProgressData empty{};
+        _active = false;
         callback(ClientResult::FileDoesNotExist, empty);
         return;
     }
@@ -578,6 +585,7 @@ void MavlinkFtpClient::upload_async(
     if (!_ifstream) {
         _end_write_session();
         ProgressData empty{};
+        _active = false;
         callback(ClientResult::FileIoError, empty);
         return;
     }
@@ -589,8 +597,10 @@ void MavlinkFtpClient::upload_async(
     std::string local_path(local_file_path);
     std::string remote_file_path = remote_folder + path_separator + fs_filename(local_path);
 
-    const auto result_callback = [callback](ClientResult result) {
+    const auto result_callback = [this, callback](ClientResult result) {
         ProgressData empty{};
+        _active = false;
+        _end_write_session();
         callback(result, empty);
     };
 

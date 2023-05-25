@@ -198,6 +198,7 @@ Ftp::Result FtpImpl::set_target_compid(uint8_t component_id)
 
 Ftp::Result FtpImpl::result_from_mavlink_ftp_result(MavlinkFtpClient::ClientResult result)
 {
+    LogErr() << "Result here at the end: " << result;
     switch (result) {
         case MavlinkFtpClient::ClientResult::Unknown:
             return Ftp::Result::Unknown;

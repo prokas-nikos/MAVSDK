@@ -9,7 +9,9 @@ add_executable(system_tests_runner
     param_get_all.cpp
     mission_raw_upload.cpp
     telemetry_subscription.cpp
+    fs_helpers.cpp
     ftp_download_file.cpp
+    ftp_upload_file.cpp
 )
 
 target_include_directories(system_tests_runner
