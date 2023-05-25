@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cinttypes>
 #include <functional>
 #include <fstream>
@@ -281,6 +282,8 @@ private:
     std::mutex _tmp_files_mutex{};
     std::unordered_map<std::string, std::string> _tmp_files{};
     std::string _tmp_dir{};
+
+    std::atomic<bool> _active {false};
 };
 
 } // namespace mavsdk

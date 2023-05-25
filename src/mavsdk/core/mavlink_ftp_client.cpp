@@ -39,7 +39,7 @@ MavlinkFtpClient::MavlinkFtpClient(SystemImpl& system_impl) : _system_impl(syste
 
 void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
 {
-    if (msg.msgid != MAVLINK_MSG_ID_FILE_TRANSFER_PROTOCOL) {
+    if (!_active) {
         return;
     }
 
@@ -47,12 +47,22 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     mavlink_file_transfer_protocol_t ftp_req;
     mavlink_msg_file_transfer_protocol_decode(&msg, &ftp_req);
 
-    if (ftp_req.target_component != 0 && ftp_req.target_component != get_our_compid()) {
+
+    if (ftp_req.target_system != 0 && ftp_req.target_system != _system_impl.get_own_system_id()) {
+        LogWarn() << "wrong sysid!";
+        return;
+    }
+
+    if (ftp_req.target_component != 0 && ftp_req.target_component != _system_impl.get_own_component_id()) {
         LogWarn() << "wrong compid!";
         return;
     }
 
     PayloadHeader* payload = reinterpret_cast<PayloadHeader*>(&ftp_req.payload[0]);
+
+    if (_curr_op != payload->req_opcode) {
+        return;
+    }
 
     ServerResult error_code = ServerResult::SUCCESS;
 
@@ -62,6 +72,8 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     } else {
         LogDebug() << "ftp - opc: " << (int)payload->opcode << " size: " << (int)payload->size
                    << " offset: " << (int)payload->offset << " seq: " << payload->seq_number;
+
+        LogDebug() << "Sent to " << std::to_string(ftp_req.target_system) << "/" << std::to_string(ftp_req.target_component);
 
         // check the sequence number: if this is a resent request, resend the last response
         if (_last_reply_valid) {
@@ -73,27 +85,20 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
             }
         }
 
-        if (_curr_op != payload->req_opcode) {
-            LogWarn() << "Received ACK not matching our current operation";
-            return;
-        }
-
-        LogWarn() << "Doing work with it!";
-
         switch (payload->opcode) {
-            case CMD_NONE:
-                LogInfo() << "OPC:CMD_NONE";
-                break;
+            //case CMD_NONE:
+            //    LogInfo() << "OPC:CMD_NONE";
+            //    break;
 
-            case CMD_TERMINATE_SESSION:
-                LogInfo() << "OPC:CMD_TERMINATE_SESSION";
-                error_code = _work_terminate(payload);
-                break;
+            //case CMD_TERMINATE_SESSION:
+            //    LogInfo() << "OPC:CMD_TERMINATE_SESSION";
+            //    error_code = _work_terminate(payload);
+            //    break;
 
-            case CMD_RESET_SESSIONS:
-                LogInfo() << "OPC:CMD_RESET_SESSIONS";
-                error_code = _work_reset(payload);
-                break;
+            //case CMD_RESET_SESSIONS:
+            //    LogInfo() << "OPC:CMD_RESET_SESSIONS";
+            //    error_code = _work_reset(payload);
+            //    break;
 
                 // case CMD_LIST_DIRECTORY:
                 //    LogInfo() << "OPC:CMD_LIST_DIRECTORY";
@@ -252,12 +257,6 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
             break;
 
         case CMD_READ_FILE:
-            LogErr() << "Writing sequence: " << payload->seq_number << "data is: ";
-            for (unsigned i = 0; i < payload->size; ++i) {
-                std::cout << std::to_string(payload->data[i]) << " "; 
-            }
-            std::cout << std::endl;
-
             _ofstream.stream.write(reinterpret_cast<const char*>(payload->data), payload->size);
             if (!_ofstream.stream) {
                 _session_result = ServerResult::ERR_FILE_IO_ERROR;
@@ -493,6 +492,7 @@ void MavlinkFtpClient::reset_async(ResultCallback callback)
 void MavlinkFtpClient::download_async(
     const std::string& remote_path, const std::string& local_folder, DownloadCallback callback)
 {
+    _active = true;
     std::lock_guard<std::mutex> lock(_curr_op_mutex);
     if (_curr_op != CMD_NONE) {
         ProgressData empty{};
@@ -509,6 +509,7 @@ void MavlinkFtpClient::download_async(
         LogErr() << "Could not open it!";
         _end_read_session();
         ProgressData empty{};
+        _active = false;
         callback(ClientResult::FileIoError, empty);
         return;
     }
@@ -516,8 +517,9 @@ void MavlinkFtpClient::download_async(
     _curr_op_progress_callback = callback;
     _last_progress_percentage = -1;
 
-    const auto result_callback = [callback](ClientResult result) {
+    const auto result_callback = [this, callback](ClientResult result) {
         ProgressData empty{};
+        _active = false;
         callback(result, empty);
     };
 

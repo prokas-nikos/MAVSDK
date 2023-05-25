@@ -35,12 +35,20 @@ MavlinkFtpServer::MavlinkFtpServer(ServerComponentImpl& server_component_impl) :
 
 void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
 {
+    LogDebug() << "server: " << this << " -> " << std::to_string(_server_component_impl.get_own_system_id()) << "/" << std::to_string(_server_component_impl.get_own_component_id());
+
     bool stream_send = false;
     mavlink_file_transfer_protocol_t ftp_req;
     mavlink_msg_file_transfer_protocol_decode(&msg, &ftp_req);
 
     LogWarn() << "target: " << std::to_string(ftp_req.target_component)
               << ", our: " << std::to_string(_server_component_impl.get_own_component_id());
+
+    if (ftp_req.target_system != 0 &&
+        ftp_req.target_system != _server_component_impl.get_own_system_id()) {
+        LogWarn() << "wrong sysid!";
+        return;
+    }
 
     if (ftp_req.target_component != 0 &&
         ftp_req.target_component != _server_component_impl.get_own_component_id()) {
@@ -69,9 +77,9 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
         //    }
         //}
 
-        if (_curr_op != payload->req_opcode) {
-            LogWarn() << "Received ACK not matching our current operation";
-            return;
+        if (_curr_op != CMD_NONE && _curr_op != payload->req_opcode) {
+            LogWarn() << "Received ACK not matching our current operation, resetting";
+            _reset();
         }
 
         _target_system_id = msg.sysid;
@@ -155,11 +163,12 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
 
 
             default:
-                LogWarn() << "OPC:Unknown command: " << static_cast<int>(payload->opcode);
-                error_code = ServerResult::ERR_UNKOWN_COMMAND;
-                break;
+                // Not for us, ignore it.
+                return;
         }
     }
+
+    LogWarn() << "Error code: " << std::to_string(error_code);
 
     payload->seq_number++;
 
@@ -194,12 +203,12 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
     if (!stream_send || error_code != ServerResult::SUCCESS) {
         // keep a copy of the last sent response ((n)ack), so that if it gets lost and the GCS
         // resends the request, we can simply resend the response.
-        LogErr() << "just send it! it is: ";
-        for (unsigned i = 0; i < payload->size; ++i) {
-            std::cout << std::to_string(payload->data[i]) << " "; 
-        }
         _last_reply_valid = true;
         _last_reply_seq = payload->seq_number;
+
+        if (payload->opcode == RSP_NAK) {
+            LogWarn() << "Sending nak!";
+        }
 
         mavlink_msg_file_transfer_protocol_pack(
             _server_component_impl.get_own_system_id(),
@@ -687,10 +696,6 @@ void MavlinkFtpServer::_calc_file_crc32_async(
 
 void MavlinkFtpServer::_send_mavlink_ftp_message(const PayloadHeader& payload)
 {
-    if (_target_component_id == 0) {
-        std::abort();
-    }
-
     mavlink_msg_file_transfer_protocol_pack(
         _server_component_impl.get_own_system_id(),
         _server_component_impl.get_own_component_id(),
@@ -808,7 +813,8 @@ MavlinkFtpServer::_work_list(PayloadHeader* payload, bool list_hidden)
 MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* payload, int oflag)
 {
     if (_session_info.fd >= 0) {
-        return ServerResult::ERR_NO_SESSIONS_AVAILABLE;
+        _reset();
+        //return ServerResult::ERR_NO_SESSIONS_AVAILABLE;
     }
 
     std::string path = [payload, this]() {
@@ -863,7 +869,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
 MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* payload)
 {
     if (payload->session != 0 || _session_info.fd < 0) {
-        return ServerResult::ERR_INVALID_SESSION;
+        _reset();
+        //return ServerResult::ERR_INVALID_SESSION;
     }
 
     // We have to test seek past EOF ourselves, lseek will allow seek past EOF
@@ -882,13 +889,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
         return ServerResult::ERR_FAIL;
     }
 
-
     payload->size = bytes_read;
-    std::cout << "we just read: ";
-    for (unsigned i = 0; i < payload->size; ++i) {
-        std::cout << std::to_string(payload->data[i]) << " "; 
-    }
-    std::cout << std::endl;
 
     return ServerResult::SUCCESS;
 }
@@ -896,7 +897,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
 MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_burst(PayloadHeader* payload)
 {
     if (payload->session != 0 && _session_info.fd < 0) {
-        return ServerResult::ERR_INVALID_SESSION;
+        _reset();
+        //return ServerResult::ERR_INVALID_SESSION;
     }
 
     // Setup for streaming sends
@@ -912,7 +914,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_burst(PayloadHeader* payl
 MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_write(PayloadHeader* payload)
 {
     if (payload->session != 0 && _session_info.fd < 0) {
-        return ServerResult::ERR_INVALID_SESSION;
+        _reset();
+        //return ServerResult::ERR_INVALID_SESSION;
     }
 
     if (lseek(_session_info.fd, payload->offset, SEEK_SET) < 0) {
@@ -936,25 +939,27 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_write(PayloadHeader* payl
 MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_terminate(PayloadHeader* payload)
 {
     if (payload->session != 0 || _session_info.fd < 0) {
-        return ServerResult::ERR_INVALID_SESSION;
+        _reset();
+        //return ServerResult::ERR_INVALID_SESSION;
     }
-
-    close(_session_info.fd);
-    _session_info.fd = -1;
-    _session_info.stream_download = false;
 
     payload->size = 0;
 
     return ServerResult::SUCCESS;
 }
 
-MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_reset(PayloadHeader* payload)
+void MavlinkFtpServer::_reset()
 {
     if (_session_info.fd != -1) {
         close(_session_info.fd);
         _session_info.fd = -1;
         _session_info.stream_download = false;
     }
+}
+
+MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_reset(PayloadHeader* payload)
+{
+    _reset();
 
     payload->size = 0;
 
