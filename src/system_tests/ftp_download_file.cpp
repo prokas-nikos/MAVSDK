@@ -205,9 +205,8 @@ TEST(SystemTest, FtpDownloadBigFile)
         are_files_identical(temp_dir_provided / temp_file, temp_dir_downloaded / temp_file));
 }
 
-TEST(SystemTest, FtpDownloadFileLossy)
+TEST(SystemTest, FtpDownloadBigFileLossy)
 {
-#if 0
     Mavsdk mavsdk_groundstation;
     mavsdk_groundstation.set_configuration(
         Mavsdk::Configuration{Mavsdk::Configuration::UsageType::GroundStation});
@@ -223,14 +222,16 @@ TEST(SystemTest, FtpDownloadFileLossy)
     auto drop_some = [&counter](mavlink_message_t&) { return counter++ % 5; };
 
     mavsdk_groundstation.intercept_incoming_messages_async(drop_some);
-    mavsdk_groundstation.intercept_incoming_messages_async(drop_some);
+    mavsdk_groundstation.intercept_outgoing_messages_async(drop_some);
 
     ASSERT_EQ(mavsdk_groundstation.add_any_connection("udp://:17000"), ConnectionResult::Success);
     ASSERT_EQ(
         mavsdk_autopilot.add_any_connection("udp://127.0.0.1:17000"), ConnectionResult::Success);
 
-    auto param_server = ParamServer{
+    auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
+
+    ftp_server.set_root_dir(temp_dir_provided);
 
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
@@ -238,43 +239,34 @@ TEST(SystemTest, FtpDownloadFileLossy)
 
     ASSERT_TRUE(system->has_autopilot());
 
-    const auto test_float_params = generate_float_params();
-    const auto test_int_params = generate_int_params();
-    const auto test_string_params = generate_string_params();
+    ASSERT_TRUE(create_temp_file(temp_dir_provided / temp_file, 10000));
+    ASSERT_TRUE(reset_directories(temp_dir_downloaded));
 
-    // Add many params (these don't need extended)
-    for (auto const& [key, val] : test_float_params) {
-        EXPECT_EQ(param_server.provide_param_float(key, val), ParamServer::Result::Success);
-    }
-    for (auto const& [key, val] : test_int_params) {
-        EXPECT_EQ(param_server.provide_param_int(key, val), ParamServer::Result::Success);
-    }
+    auto ftp = Ftp{system};
 
-    for (auto const& [key, val] : test_string_params) {
-        EXPECT_EQ(param_server.provide_param_custom(key, val), ParamServer::Result::Success);
-    }
+    auto prom = std::promise<Ftp::Result>();
+    auto fut = prom.get_future();
+    ftp.download_async(
+        "" / temp_file,
+        temp_dir_downloaded,
+        [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+            if (result != Ftp::Result::Next) {
+                prom.set_value(result);
+            } else {
+                LogDebug() << "Download progress: " << progress_data.bytes_transferred << "/"
+                           << progress_data.total_bytes << " bytes";
+            }
+        });
 
-    {
-        auto param_sender = Param{system};
-        // Here we use the non-extended protocol
-        param_sender.select_component(1, Param::ProtocolVersion::V1);
-        const auto all_params = param_sender.get_all_params();
-        assert_equal<int, Param::IntParam>(test_int_params, all_params.int_params);
-        assert_equal<float, Param::FloatParam>(test_float_params, all_params.float_params);
-    }
-    {
-        auto param_sender = Param{system};
-        // now we do the same, but this time with the extended protocol
-        param_sender.select_component(1, Param::ProtocolVersion::Ext);
-        const auto all_params = param_sender.get_all_params();
-        assert_equal<int, Param::IntParam>(test_int_params, all_params.int_params);
-        assert_equal<float, Param::FloatParam>(test_float_params, all_params.float_params);
-        assert_equal<std::string, Param::CustomParam>(test_string_params, all_params.custom_params);
-    }
+    auto future_status = fut.wait_for(std::chrono::seconds(5));
+    ASSERT_EQ(future_status, std::future_status::ready);
+    EXPECT_EQ(fut.get(), Ftp::Result::Success);
+
+    EXPECT_TRUE(
+        are_files_identical(temp_dir_provided / temp_file, temp_dir_downloaded / temp_file));
 
     // Before going out of scope, we need to make sure to no longer access the
     // drop_some callback which accesses the local counter variable.
     mavsdk_groundstation.intercept_incoming_messages_async(nullptr);
-    mavsdk_groundstation.intercept_incoming_messages_async(nullptr);
-#endif
+    mavsdk_groundstation.intercept_outgoing_messages_async(nullptr);
 }

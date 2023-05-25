@@ -190,15 +190,11 @@ private:
     struct SessionInfo _session_info {}; ///< Session info, fd=-1 for no active session
 
     uint8_t _network_id = 0;
+    uint8_t _target_system_id = 0;
     uint8_t _target_component_id = 0;
-    bool _target_component_id_set{false};
     Opcode _curr_op = CMD_NONE;
     std::mutex _curr_op_mutex{};
     mavlink_message_t _last_command{};
-    void* _last_command_timeout_cookie = nullptr;
-    bool _last_command_timer_running{false};
-    std::mutex _timer_mutex{};
-    static constexpr uint32_t _last_command_timeout{200};
     uint32_t _max_last_command_retries{5};
     uint32_t _last_command_retries = 0;
     std::string _last_path{};
@@ -243,9 +239,6 @@ private:
     void _terminate_session();
     void _send_mavlink_ftp_message(const PayloadHeader& payload);
 
-    void _command_timeout();
-    void _reset_timer();
-    void _stop_timer();
     void _list_directory(uint32_t offset);
 
     // prepend a root directory to each file/dir access to avoid enumerating the full FS tree

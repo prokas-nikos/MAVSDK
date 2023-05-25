@@ -68,15 +68,17 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
             if (payload->seq_number + 1 == _last_reply_seq) {
                 // This is the same request as the one we replied to last.
                 LogWarn() << "Wrong sequence - resend last response";
-                _system_impl.send_message(_last_reply);
+                //_system_impl.send_message(_last_reply);
                 return;
             }
         }
 
         if (_curr_op != payload->req_opcode) {
-            // LogWarn() << "Received ACK not matching our current operation";
+            LogWarn() << "Received ACK not matching our current operation";
             return;
         }
+
+        LogWarn() << "Doing work with it!";
 
         switch (payload->opcode) {
             case CMD_NONE:
@@ -202,17 +204,17 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
     if (!stream_send || error_code != ServerResult::SUCCESS) {
         // keep a copy of the last sent response ((n)ack), so that if it gets lost and the GCS
         // resends the request, we can simply resend the response.
-        _last_reply_valid = true;
-        _last_reply_seq = payload->seq_number;
-        mavlink_msg_file_transfer_protocol_pack(
-            _system_impl.get_own_system_id(),
-            _system_impl.get_own_component_id(),
-            &_last_reply,
-            _network_id,
-            _system_impl.get_system_id(),
-            _get_target_component_id(),
-            reinterpret_cast<const uint8_t*>(payload));
-        _system_impl.send_message(_last_reply);
+        //_last_reply_valid = true;
+        //_last_reply_seq = payload->seq_number;
+        //mavlink_msg_file_transfer_protocol_pack(
+        //    _system_impl.get_own_system_id(),
+        //    _system_impl.get_own_component_id(),
+        //    &_last_reply,
+        //    _network_id,
+        //    _system_impl.get_system_id(),
+        //    _get_target_component_id(),
+        //    reinterpret_cast<const uint8_t*>(payload));
+        //_system_impl.send_message(_last_reply);
     }
 }
 
@@ -233,6 +235,7 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
         return;
     }
 
+
     switch (_curr_op) {
         case CMD_NONE:
             LogWarn() << "Received ACK without active operation";
@@ -249,6 +252,12 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
             break;
 
         case CMD_READ_FILE:
+            LogErr() << "Writing sequence: " << payload->seq_number << "data is: ";
+            for (unsigned i = 0; i < payload->size; ++i) {
+                std::cout << std::to_string(payload->data[i]) << " "; 
+            }
+            std::cout << std::endl;
+
             _ofstream.stream.write(reinterpret_cast<const char*>(payload->data), payload->size);
             if (!_ofstream.stream) {
                 _session_result = ServerResult::ERR_FILE_IO_ERROR;
@@ -277,14 +286,12 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
         case CMD_TERMINATE_SESSION:
             _curr_op = CMD_NONE;
             _session_valid = false;
-            _stop_timer();
             _call_op_result_callback(_session_result);
             break;
 
         case CMD_RESET_SESSIONS:
             _curr_op = CMD_NONE;
             _session_valid = false;
-            _stop_timer();
             _call_op_result_callback(_session_result);
             break;
 
@@ -307,7 +314,6 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
             } else {
                 // We came to end - report entire list
                 _curr_op = CMD_NONE;
-                _stop_timer();
                 _call_dir_items_result_callback(ServerResult::SUCCESS, _curr_directory_list);
             }
             break;
@@ -316,14 +322,12 @@ void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
         case CMD_CALC_FILE_CRC32: {
             _curr_op = CMD_NONE;
             uint32_t checksum = *reinterpret_cast<uint32_t*>(payload->data);
-            _stop_timer();
             _call_crc32_result_callback(ServerResult::SUCCESS, checksum);
             break;
         }
 
         default:
             _curr_op = CMD_NONE;
-            _stop_timer();
             _call_op_result_callback(ServerResult::SUCCESS);
             break;
     }
@@ -357,7 +361,6 @@ void MavlinkFtpClient::_process_nak(ServerResult result)
                 const bool delete_file = (result == ServerResult::ERR_FAIL_FILE_DOES_NOT_EXIST);
                 _end_read_session(delete_file);
             } else {
-                _stop_timer();
                 _call_op_result_callback(_session_result);
                 // TODO: is this right?
                 _end_read_session(true);
@@ -370,19 +373,16 @@ void MavlinkFtpClient::_process_nak(ServerResult result)
             if (_session_valid) {
                 _end_write_session();
             } else {
-                _stop_timer();
                 _call_op_result_callback(_session_result);
             }
             break;
 
         case CMD_TERMINATE_SESSION:
             _session_valid = false;
-            _stop_timer();
             _call_op_result_callback(_session_result);
             break;
 
         case CMD_LIST_DIRECTORY:
-            _stop_timer();
             if (!_curr_directory_list.empty()) {
                 _call_dir_items_result_callback(ServerResult::SUCCESS, _curr_directory_list);
             } else {
@@ -391,12 +391,10 @@ void MavlinkFtpClient::_process_nak(ServerResult result)
             break;
 
         case CMD_CALC_FILE_CRC32:
-            _stop_timer();
             _call_crc32_result_callback(result, 0);
             break;
 
         default:
-            _stop_timer();
             _call_op_result_callback(result);
             break;
     }
@@ -528,6 +526,7 @@ void MavlinkFtpClient::download_async(
 
 void MavlinkFtpClient::_end_read_session(bool delete_file)
 {
+    LogErr() << "Reading done, terminating.";
     _curr_op = CMD_NONE;
     if (_ofstream.stream.is_open()) {
         _ofstream.stream.close();
@@ -894,7 +893,7 @@ void MavlinkFtpClient::_send_mavlink_ftp_message(const PayloadHeader& payload)
         _last_command_timer_running = true;
         _system_impl.register_timeout_handler(
             [this]() { _command_timeout(); },
-            static_cast<double>(_last_command_timeout) / 1000.0,
+            _system_impl.timeout_s(),
             &_last_command_timeout_cookie);
     }
 }
@@ -916,7 +915,7 @@ void MavlinkFtpClient::_command_timeout()
         _system_impl.send_message(_last_command);
         _system_impl.register_timeout_handler(
             [this]() { _command_timeout(); },
-            static_cast<double>(_last_command_timeout) / 1000.0,
+            _system_impl.timeout_s(),
             &_last_command_timeout_cookie);
     }
 }
@@ -925,18 +924,6 @@ void MavlinkFtpClient::_reset_timer()
 {
     _system_impl.refresh_timeout_handler(_last_command_timeout_cookie);
     _last_command_retries = 0;
-}
-
-void MavlinkFtpClient::_stop_timer()
-{
-    {
-        std::lock_guard<std::mutex> lock(_timer_mutex);
-        if (!_last_command_timer_running) {
-            return;
-        }
-        _last_command_timer_running = false;
-    }
-    _system_impl.unregister_timeout_handler(_last_command_timeout_cookie);
 }
 
 /// @brief Guarantees that the payload data is null terminated.
