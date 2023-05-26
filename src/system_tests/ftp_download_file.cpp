@@ -158,7 +158,6 @@ TEST(SystemTest, FtpDownloadBigFileLossy)
         Mavsdk::Configuration{Mavsdk::Configuration::UsageType::Autopilot});
     mavsdk_autopilot.set_timeout_s(reduced_timeout_s);
 
-    // Drop every third message
     unsigned counter = 0;
     auto drop_some = [&counter](mavlink_message_t&) { return counter++ % 5; };
 

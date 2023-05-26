@@ -185,11 +185,6 @@ Ftp::Result FtpImpl::set_root_directory(const std::string& root_dir)
         _system_impl->mavlink_ftp_client().set_root_directory(root_dir));
 }
 
-void FtpImpl::set_retries(uint32_t retries)
-{
-    _system_impl->mavlink_ftp_client().set_retries(retries);
-}
-
 Ftp::Result FtpImpl::set_target_compid(uint8_t component_id)
 {
     return result_from_mavlink_ftp_result(
@@ -198,7 +193,6 @@ Ftp::Result FtpImpl::set_target_compid(uint8_t component_id)
 
 Ftp::Result FtpImpl::result_from_mavlink_ftp_result(MavlinkFtpClient::ClientResult result)
 {
-    LogErr() << "Result here at the end: " << result;
     switch (result) {
         case MavlinkFtpClient::ClientResult::Unknown:
             return Ftp::Result::Unknown;

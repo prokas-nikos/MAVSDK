@@ -62,7 +62,6 @@ public:
         const std::string& remote_path,
         Ftp::AreFilesIdenticalCallback callback);
 
-    void set_retries(uint32_t retries);
     Ftp::Result set_root_directory(const std::string& root_dir);
     uint8_t get_our_compid() { return _system_impl->get_own_component_id(); };
     Ftp::Result set_target_compid(uint8_t component_id);

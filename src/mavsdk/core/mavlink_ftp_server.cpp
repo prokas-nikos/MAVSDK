@@ -877,10 +877,12 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
 
     // We have to test seek past EOF ourselves, lseek will allow seek past EOF
     if (payload->offset >= _session_info.file_size) {
+        LogWarn() << "Offset!" << payload->offset << ", size: "<< _session_info.file_size;
         return ServerResult::ERR_EOF;
     }
 
     if (lseek(_session_info.fd, payload->offset, SEEK_SET) < 0) {
+        LogWarn() << "fail!";
         return ServerResult::ERR_FAIL;
     }
 
@@ -925,7 +927,11 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_write(PayloadHeader* payl
         return ServerResult::ERR_FAIL;
     }
 
+    static unsigned all_written = 0;
     int bytes_written = ::write(_session_info.fd, &payload->data[0], payload->size);
+    all_written += bytes_written;
+
+    LogWarn() << "Written: " << bytes_written << " of " << all_written;
 
     if (bytes_written < 0) {
         // Negative return indicates error other than eof

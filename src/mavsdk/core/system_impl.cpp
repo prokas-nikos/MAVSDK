@@ -285,6 +285,7 @@ void SystemImpl::system_thread()
         _command_sender.do_work();
         _timesync.do_work();
         _mission_transfer.do_work();
+        _mavlink_ftp_client.do_work();
 
         if (_mavsdk_impl.time.elapsed_since_s(last_ping_time) >= SystemImpl::_ping_interval_s) {
             if (_connected) {

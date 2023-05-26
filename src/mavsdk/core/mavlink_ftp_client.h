@@ -9,9 +9,11 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "mavlink_include.h"
+#include "locked_queue.h"
 
 // As found in
 // https://stackoverflow.com/questions/1537964#answer-3312896
@@ -62,6 +64,8 @@ public:
     using ListDirectoryCallback = std::function<void(ClientResult, std::vector<std::string>)>;
     using AreFilesIdenticalCallback = std::function<void(ClientResult, bool)>;
 
+    void do_work();
+
     void send();
 
     std::pair<ClientResult, std::vector<std::string>> list_directory(const std::string& path);
@@ -93,7 +97,6 @@ public:
         const std::string& remote_path,
         AreFilesIdenticalCallback callback);
 
-    void set_retries(uint32_t retries) { _max_last_command_retries = retries; }
     ClientResult set_root_directory(const std::string& root_dir);
     uint8_t get_our_compid();
     ClientResult set_target_compid(uint8_t component_id);
@@ -101,26 +104,27 @@ public:
     std::optional<std::string> write_tmp_file(const std::string& path, const std::string& content);
 
 private:
-    SystemImpl& _system_impl;
+    static constexpr unsigned RETRIES = 10;
 
-    /// @brief Possible server results returned for requests.
-    enum ServerResult : uint8_t {
-        SUCCESS,
-        ERR_FAIL, ///< Unknown failure
-        ERR_FAIL_ERRNO, ///< Command failed, errno sent back in PayloadHeader.data[1]
-        ERR_INVALID_DATA_SIZE, ///< PayloadHeader.size is invalid
-        ERR_INVALID_SESSION, ///< Session is not currently open
-        ERR_NO_SESSIONS_AVAILABLE, ///< All available Sessions in use
-        ERR_EOF, ///< Offset past end of file for List and Read commands
-        ERR_UNKOWN_COMMAND, ///< Unknown command opcode
-        ERR_FAIL_FILE_EXISTS, ///< File exists already
-        ERR_FAIL_FILE_PROTECTED, ///< File is write protected
-        ERR_FAIL_FILE_DOES_NOT_EXIST, ///< File does not exist
+    /// @brief Maximum data size in RequestHeader::data
+    static constexpr uint8_t max_data_length = 239;
 
-        // These error codes are returned to client without contacting the server
-        ERR_TIMEOUT = 200, ///< Timeout
-        ERR_FILE_IO_ERROR, ///< File IO operation error
-    };
+    /// @brief This is the payload which is in mavlink_file_transfer_protocol_t.payload.
+    /// This needs to be packed, because it's typecasted from
+    /// mavlink_file_transfer_protocol_t.payload, which starts at a 3 byte offset, causing an
+    /// unaligned access to seq_number and offset
+    PACK(struct PayloadHeader {
+        uint16_t seq_number; ///< sequence number for message
+        uint8_t session; ///< Session id for read and write commands
+        uint8_t opcode; ///< Command opcode
+        uint8_t size; ///< Size of data
+        uint8_t req_opcode; ///< Request opcode returned in RSP_ACK, RSP_NAK message
+        uint8_t burst_complete; ///< Only used if req_opcode=CMD_BURST_READ_FILE - 1: set of burst
+        ///< packets complete, 0: More burst packets coming.
+        uint8_t padding; ///< 32 bit alignment padding
+        uint32_t offset; ///< Offsets for List and Read commands
+        uint8_t data[max_data_length]; ///< command data, varies by Opcode
+    });
 
     /// @brief Command opcodes
     enum Opcode : uint8_t {
@@ -145,31 +149,60 @@ private:
         RSP_NAK ///< Nak response
     };
 
+
+    struct DownloadItem {
+        std::string remote_path{};
+        std::string local_folder{};
+        DownloadCallback callback{};
+    };
+
+    struct UploadItem {
+        std::string local_file_path{};
+        std::string remote_folder{};
+        UploadCallback callback{};
+        std::ifstream ifstream{};
+        std::size_t file_size{0};
+        std::size_t bytes_transferred{0};
+        int last_progress_percentage{-1};
+    };
+
+    using Item = std::variant<DownloadItem, UploadItem>;
+    struct Work {
+        Item item;
+        PayloadHeader payload; // The last payload saved for retries
+        unsigned retries{RETRIES};
+        bool started{false};
+        Opcode last_opcode{};
+        uint16_t last_seq_number{0};
+        Work(Item new_item) : item(std::move(new_item)) {}
+    };
+
+    /// @brief Possible server results returned for requests.
+    enum ServerResult : uint8_t {
+        SUCCESS,
+        ERR_FAIL, ///< Unknown failure
+        ERR_FAIL_ERRNO, ///< Command failed, errno sent back in PayloadHeader.data[1]
+        ERR_INVALID_DATA_SIZE, ///< PayloadHeader.size is invalid
+        ERR_INVALID_SESSION, ///< Session is not currently open
+        ERR_NO_SESSIONS_AVAILABLE, ///< All available Sessions in use
+        ERR_EOF, ///< Offset past end of file for List and Read commands
+        ERR_UNKOWN_COMMAND, ///< Unknown command opcode
+        ERR_FAIL_FILE_EXISTS, ///< File exists already
+        ERR_FAIL_FILE_PROTECTED, ///< File is write protected
+        ERR_FAIL_FILE_DOES_NOT_EXIST, ///< File does not exist
+
+        // These error codes are returned to client without contacting the server
+        ERR_TIMEOUT = 200, ///< Timeout
+        ERR_FILE_IO_ERROR, ///< File IO operation error
+    };
+
+
     using file_crc32_ResultCallback = std::function<void(ClientResult, uint32_t)>;
 
     static constexpr auto DIRENT_FILE = "F"; ///< Identifies File returned from List command
     static constexpr auto DIRENT_DIR = "D"; ///< Identifies Directory returned from List command
     static constexpr auto DIRENT_SKIP = "S"; ///< Identifies Skipped entry from List command
 
-    /// @brief Maximum data size in RequestHeader::data
-    static constexpr uint8_t max_data_length = 239;
-
-    /// @brief This is the payload which is in mavlink_file_transfer_protocol_t.payload.
-    /// This needs to be packed, because it's typecasted from
-    /// mavlink_file_transfer_protocol_t.payload, which starts at a 3 byte offset, causing an
-    /// unaligned access to seq_number and offset
-    PACK(struct PayloadHeader {
-        uint16_t seq_number; ///< sequence number for message
-        uint8_t session; ///< Session id for read and write commands
-        uint8_t opcode; ///< Command opcode
-        uint8_t size; ///< Size of data
-        uint8_t req_opcode; ///< Request opcode returned in RSP_ACK, RSP_NAK message
-        uint8_t burst_complete; ///< Only used if req_opcode=CMD_BURST_READ_FILE - 1: set of burst
-        ///< packets complete, 0: More burst packets coming.
-        uint8_t padding; ///< 32 bit alignment padding
-        uint32_t offset; ///< Offsets for List and Read commands
-        uint8_t data[max_data_length]; ///< command data, varies by Opcode
-    });
 
     static_assert(
         sizeof(PayloadHeader) == sizeof(mavlink_file_transfer_protocol_t::payload),
@@ -191,6 +224,9 @@ private:
     };
 
     struct SessionInfo _session_info {}; ///< Session info, fd=-1 for no active session
+    
+    SystemImpl& _system_impl;
+
 
     uint8_t _network_id = 0;
     uint8_t _target_component_id = 0;
@@ -198,15 +234,11 @@ private:
     Opcode _curr_op = CMD_NONE;
     std::mutex _curr_op_mutex{};
     mavlink_message_t _last_command{};
-    void* _last_command_timeout_cookie = nullptr;
     bool _last_command_timer_running{false};
     std::mutex _timer_mutex{};
-    static constexpr uint32_t _last_command_timeout{200};
-    uint32_t _max_last_command_retries{5};
     uint32_t _last_command_retries = 0;
     std::string _last_path{};
     uint16_t _seq_number = 0;
-    std::ifstream _ifstream{};
     OfstreamWithPath _ofstream{};
     bool _session_valid = false;
     uint8_t _session = 0;
@@ -214,6 +246,8 @@ private:
     uint32_t _bytes_transferred = 0;
     uint32_t _file_size = 0;
     std::vector<std::string> _curr_directory_list{};
+
+    void* _timeout_cookie = nullptr;
 
     ResultCallback _curr_op_result_callback{};
     // _curr_op_progress_callback is used for download_callback_t as well as upload_callback_t
@@ -225,6 +259,18 @@ private:
     ListDirectoryCallback _curr_dir_items_result_callback{};
 
     file_crc32_ResultCallback _current_crc32_result_callback{};
+
+
+    bool upload_open_file(Work& work, UploadItem& item);
+    bool upload_write_file(Work& work, UploadItem& item);
+    bool upload_close_file(Work& work, UploadItem& item);
+
+    static ClientResult result_from_nak(PayloadHeader* payload);
+
+    void timeout();
+    void start_timer();
+    void reset_timer();
+    void stop_timer();
 
     void _calc_file_crc32_async(const std::string& path, file_crc32_ResultCallback callback);
     ClientResult _calc_local_file_crc32(const std::string& path, uint32_t& csum);
@@ -238,7 +284,7 @@ private:
     void _call_dir_items_result_callback(ServerResult result, std::vector<std::string> list);
     void _call_crc32_result_callback(ServerResult result, uint32_t crc32);
     void _generic_command_async(
-        Opcode opcode, uint32_t offset, const std::string& path, ResultCallback callback);
+        Opcode opcode, uint32_t offset, const std::string& path);
     void _read();
     void _write();
     void _end_read_session(bool delete_file = false);
@@ -246,9 +292,6 @@ private:
     void _terminate_session();
     void _send_mavlink_ftp_message(const PayloadHeader& payload);
 
-    void _command_timeout();
-    void _reset_timer();
-    void _stop_timer();
     void _list_directory(uint32_t offset);
     uint8_t _get_target_component_id();
 
@@ -284,6 +327,10 @@ private:
     std::string _tmp_dir{};
 
     std::atomic<bool> _active {false};
+
+    LockedQueue<Work> _work_queue{};
+
+    bool _debugging {false};
 };
 
 } // namespace mavsdk
