@@ -213,3 +213,88 @@ TEST(SystemTest, FtpUploadBigFileLossy)
     mavsdk_groundstation.intercept_incoming_messages_async(nullptr);
     mavsdk_groundstation.intercept_outgoing_messages_async(nullptr);
 }
+
+TEST(SystemTest, FtpUploadStopAndTryAgain)
+{
+    Mavsdk mavsdk_groundstation;
+    mavsdk_groundstation.set_configuration(
+        Mavsdk::Configuration{Mavsdk::Configuration::UsageType::GroundStation});
+    mavsdk_groundstation.set_timeout_s(reduced_timeout_s);
+
+    Mavsdk mavsdk_autopilot;
+    mavsdk_autopilot.set_configuration(
+        Mavsdk::Configuration{Mavsdk::Configuration::UsageType::Autopilot});
+    mavsdk_autopilot.set_timeout_s(reduced_timeout_s);
+
+    // Once we received half, we want to stop all traffic.
+    bool got_half = false;
+    auto drop_at_some_point = [&got_half](mavlink_message_t&) { return !got_half; };
+
+    mavsdk_groundstation.intercept_incoming_messages_async(drop_at_some_point);
+    mavsdk_groundstation.intercept_outgoing_messages_async(drop_at_some_point);
+
+    ASSERT_EQ(mavsdk_groundstation.add_any_connection("udp://:17000"), ConnectionResult::Success);
+    ASSERT_EQ(
+        mavsdk_autopilot.add_any_connection("udp://127.0.0.1:17000"), ConnectionResult::Success);
+
+    auto ftp_server = FtpServer{
+        mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
+
+    ftp_server.set_root_dir(temp_dir_provided);
+
+    auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
+    ASSERT_TRUE(maybe_system);
+    auto system = maybe_system.value();
+
+    ASSERT_TRUE(system->has_autopilot());
+
+    ASSERT_TRUE(create_temp_file(temp_dir_to_upload / temp_file, 1000));
+    ASSERT_TRUE(reset_directories(temp_dir_provided));
+
+    auto ftp = Ftp{system};
+
+    auto prom = std::promise<Ftp::Result>();
+    auto fut = prom.get_future();
+        ftp.upload_async(
+            temp_dir_to_upload / temp_file, "/",
+                [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
+            if (progress_data.bytes_transferred > 500) {
+                    got_half = true;
+                }
+            if (result != Ftp::Result::Next) {
+                prom.set_value(result);
+            } else {
+                LogDebug() << "Download progress: " << progress_data.bytes_transferred << "/"
+                           << progress_data.total_bytes << " bytes";
+            }
+        });
+
+    auto future_status = fut.wait_for(std::chrono::seconds(5));
+    ASSERT_EQ(future_status, std::future_status::ready);
+    EXPECT_EQ(fut.get(), Ftp::Result::Timeout);
+
+    // Before going out of scope, we need to make sure to no longer access the
+    // drop_some callback which accesses the local counter variable.
+    mavsdk_groundstation.intercept_incoming_messages_async(nullptr);
+    mavsdk_groundstation.intercept_outgoing_messages_async(nullptr);
+
+    {
+        // Now try again
+        auto prom = std::promise<Ftp::Result>();
+        auto fut = prom.get_future();
+        ftp.upload_async(
+            temp_dir_to_upload / temp_file, "/",
+                [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
+                if (result != Ftp::Result::Next) {
+                    prom.set_value(result);
+                } else {
+                    LogDebug() << "Download progress: " << progress_data.bytes_transferred << "/"
+                               << progress_data.total_bytes << " bytes";
+                }
+            });
+
+        auto future_status = fut.wait_for(std::chrono::seconds(5));
+        ASSERT_EQ(future_status, std::future_status::ready);
+        EXPECT_EQ(fut.get(), Ftp::Result::Success);
+    }
+}

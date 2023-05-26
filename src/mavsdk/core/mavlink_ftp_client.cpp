@@ -64,11 +64,13 @@ void MavlinkFtpClient::do_work()
 
     std::visit(
         overloaded{
-            [&](const DownloadItem&) {
-
+            [&](DownloadItem& item) {
+                    if (!download_start(*work, item)) {
+                        work_queue_guard.pop_front();
+                    }
                 },
             [&](UploadItem& item) {
-                    if (!upload_open_file(*work, item)) {
+                    if (!upload_start(*work, item)) {
                         work_queue_guard.pop_front();
                     }
                 }}, work->item);
@@ -112,51 +114,80 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
         return;
     }
 
+    if (work->last_opcode != payload->req_opcode) {
+        // Ignore
+        return;
+    }
+    if (work->last_seq_number != 0 &&
+        work->last_seq_number == payload->seq_number) {
+        // We have already seen this ack/nak.
+        return;
+    }
+
     std::visit(
         overloaded{
-            [&](const DownloadItem& /*item*/) {
+            [&](DownloadItem& item) {
+                if (payload->opcode == RSP_ACK) {
+                    if (payload->req_opcode == CMD_OPEN_FILE_RO ||
+                        payload->req_opcode == CMD_READ_FILE) {
+
+
+                        // Whenever we do get an ack,
+                        // reset the retry counter.
+                        work->retries = RETRIES;
+
+                        if (!download_continue(*work, item, payload)) {
+                            stop_timer();
+                            work_queue_guard.pop_front();
+                        }
+                    } else if (payload->req_opcode == CMD_TERMINATE_SESSION) {
+                        stop_timer();
+                        item.callback(ClientResult::Success, {});
+                        work_queue_guard.pop_front();
+
+                    } else {
+                        LogWarn() << "Unexpected ack";
+                    }
+
+                } else if (payload->opcode == RSP_NAK) {
+                    stop_timer();
+                    item.callback(result_from_nak(payload), {});
+                    work_queue_guard.pop_front();
+                }
+
 
                 },
             [&](UploadItem& item) {
-                    if (work->last_opcode != payload->req_opcode) {
-                        // Ignore
-                        return;
-                    }
-                    if (work->last_seq_number != 0 &&
-                        work->last_seq_number == payload->seq_number) {
-                        // We have already seen this ack/nak.
-                        return;
-                    }
+                if (payload->opcode == RSP_ACK) {
+                    if (payload->req_opcode == CMD_OPEN_FILE_WO ||
+                        payload->req_opcode == CMD_WRITE_FILE) {
 
-                    if (payload->opcode == RSP_ACK) {
-                        if (payload->req_opcode == CMD_OPEN_FILE_WO ||
-                            payload->req_opcode == CMD_WRITE_FILE) {
+                            // Whenever we do get an ack,
+                            // reset the retry counter.
+                            work->retries = RETRIES;
 
-                                // Whenever we do get an ack,
-                                // reset the retry counter.
-                                work->retries = RETRIES;
-
-                            if (!upload_write_file(*work, item)) {
-                                stop_timer();
-                                work_queue_guard.pop_front();
-                            }
-                        } else if (payload->req_opcode == CMD_TERMINATE_SESSION) {
+                        if (!upload_continue(*work, item)) {
                             stop_timer();
-                            item.callback(ClientResult::Success, {});
                             work_queue_guard.pop_front();
-
-                        } else {
-                            LogWarn() << "Unexpected ack";
                         }
-
-                    } else if (payload->opcode == RSP_NAK) {
+                    } else if (payload->req_opcode == CMD_TERMINATE_SESSION) {
                         stop_timer();
-                        item.callback(result_from_nak(payload), {});
+                        item.callback(ClientResult::Success, {});
                         work_queue_guard.pop_front();
-                    }
-                    work->last_seq_number = payload->seq_number;
 
-                }}, work->item);
+                    } else {
+                        LogWarn() << "Unexpected ack";
+                    }
+
+                } else if (payload->opcode == RSP_NAK) {
+                    stop_timer();
+                    item.callback(result_from_nak(payload), {});
+                    work_queue_guard.pop_front();
+                }
+
+            }}, work->item);
+
+    work->last_seq_number = payload->seq_number;
 
     //if (_curr_op != payload->req_opcode) {
     //    return;
@@ -243,7 +274,105 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
 
 MavlinkFtpClient::~MavlinkFtpClient() {}
 
-bool MavlinkFtpClient::upload_open_file(Work& work, UploadItem& item)
+bool MavlinkFtpClient::download_start(Work& work, DownloadItem& item)
+{
+    std::string local_path = item.local_folder + path_separator + fs_filename(item.remote_path);
+
+    LogDebug() << "Trying to open write to local path: " << local_path;
+    item.ofstream.open(local_path, std::fstream::trunc | std::fstream::binary);
+    if (!item.ofstream) {
+        LogErr() << "Could not open it!";
+        item.callback(ClientResult::FileIoError, {});
+        return false;
+    }
+
+    item.last_progress_percentage = -1;
+
+    work.last_opcode = CMD_OPEN_FILE_RO;
+    work.payload = {};
+    work.payload.seq_number = _seq_number++;
+    work.payload.session = 0;
+    work.payload.opcode = work.last_opcode;
+    work.payload.offset = 0;
+    strncpy(reinterpret_cast<char*>(work.payload.data), item.remote_path.c_str(), max_data_length - 1);
+    work.payload.size = item.remote_path.length() + 1;
+
+    start_timer();
+    _send_mavlink_ftp_message(work.payload);
+
+    return true;
+}
+
+bool MavlinkFtpClient::download_continue(Work& work, DownloadItem& item, PayloadHeader* payload)
+{
+    if (payload->req_opcode == CMD_OPEN_FILE_RO) {
+
+        item.file_size = *(reinterpret_cast<uint32_t*>(payload->data));
+
+        if (_debugging) {
+            LogWarn() << "Download continue, got file size: " << item.file_size;
+        }
+
+    } else if (payload->req_opcode == CMD_READ_FILE) {
+
+        if (_debugging) {
+            LogWarn() << "Download continue, write: " << std::to_string(payload->size);
+        }
+
+        if (item.bytes_transferred < item.file_size) {
+            item.ofstream.write(reinterpret_cast<const char*>(payload->data), payload->size);
+            if (!item.ofstream) {
+                item.callback(ClientResult::FileIoError, {});
+                return false;
+            }
+            item.bytes_transferred += payload->size;
+
+            if (_debugging) {
+                LogDebug() << "Written " << item.bytes_transferred << " of " << item.file_size << " bytes";
+            }
+        }
+        item.callback(ClientResult::Next, ProgressData{item.bytes_transferred, item.file_size});
+    }
+    
+    if (item.bytes_transferred < item.file_size) {
+
+        work.last_opcode = CMD_READ_FILE;
+        work.payload.seq_number = _seq_number++;
+        work.payload.session = _session;
+        work.payload.opcode = work.last_opcode;
+        work.payload.offset = item.bytes_transferred;
+        work.payload.size =
+            std::min(static_cast<size_t>(max_data_length),
+                     item.file_size - item.bytes_transferred);
+            LogWarn() << "Request size: " << std::to_string(work.payload.size) << " of left " << int(item.file_size - item.bytes_transferred);
+        start_timer();
+        _send_mavlink_ftp_message(work.payload);
+
+        return true;
+    } else {
+        if (_debugging) {
+            LogDebug() << "All bytes written, terminating session";
+        }
+
+        // Final step
+        work.last_opcode = CMD_TERMINATE_SESSION;
+
+        work.payload = PayloadHeader{};
+        work.payload.seq_number = _seq_number++;
+        work.payload.session = _session;
+
+        work.payload.opcode = work.last_opcode;
+        work.payload.offset = 0;
+        work.payload.size = 0;
+
+        start_timer();
+        _send_mavlink_ftp_message(work.payload);
+    }
+
+    return true;
+}
+
+bool MavlinkFtpClient::upload_start(Work& work, UploadItem& item)
 {
     if (!fs_exists(item.local_file_path)) {
         item.callback(ClientResult::FileDoesNotExist, {});
@@ -280,7 +409,7 @@ bool MavlinkFtpClient::upload_open_file(Work& work, UploadItem& item)
     return true;
 }
 
-bool MavlinkFtpClient::upload_write_file(Work& work, UploadItem& item)
+bool MavlinkFtpClient::upload_continue(Work& work, UploadItem& item)
 {
     if (item.bytes_transferred < item.file_size) {
 
@@ -320,6 +449,8 @@ bool MavlinkFtpClient::upload_write_file(Work& work, UploadItem& item)
         start_timer();
         _send_mavlink_ftp_message(work.payload);
     }
+
+    item.callback(ClientResult::Next, ProgressData{item.bytes_transferred, item.file_size});
 
     return true;
 }
@@ -606,38 +737,13 @@ void MavlinkFtpClient::reset_async(ResultCallback callback)
 void MavlinkFtpClient::download_async(
     const std::string& remote_path, const std::string& local_folder, DownloadCallback callback)
 {
-    _active = true;
-    std::lock_guard<std::mutex> lock(_curr_op_mutex);
-    if (_curr_op != CMD_NONE) {
-        ProgressData empty{};
-        callback(ClientResult::Busy, empty);
-        return;
-    }
+    auto item = DownloadItem{};
+    item.remote_path = remote_path;
+    item.local_folder = local_folder;
+    item.callback = callback;
+    auto new_work = Work{std::move(item)};
 
-    std::string local_path = local_folder + path_separator + fs_filename(remote_path);
-
-    LogDebug() << "Trying to open write to local path: " << local_path;
-    _ofstream.stream.open(local_path, std::fstream::trunc | std::fstream::binary);
-    _ofstream.path = local_path;
-    if (!_ofstream.stream) {
-        LogErr() << "Could not open it!";
-        _end_read_session();
-        ProgressData empty{};
-        _active = false;
-        callback(ClientResult::FileIoError, empty);
-        return;
-    }
-
-    _curr_op_progress_callback = callback;
-    _last_progress_percentage = -1;
-
-    const auto result_callback = [this, callback](ClientResult result) {
-        ProgressData empty{};
-        _active = false;
-        callback(result, empty);
-    };
-
-    //_generic_command_async(CMD_OPEN_FILE_RO, 0, remote_path, result_callback);
+    _work_queue.push_back(std::make_shared<Work>(std::move(new_work)));
 }
 
 void MavlinkFtpClient::_end_read_session(bool delete_file)
@@ -1013,8 +1119,18 @@ void MavlinkFtpClient::timeout()
 
     std::visit(
         overloaded{
-            [&](const DownloadItem& /*item*/) {
+            [&](DownloadItem& item) {
+                    if (--work->retries == 0) {
+                        item.callback(ClientResult::Timeout, {});
+                        work_queue_guard.pop_front();
+                        return;
+                    }
+                    if (_debugging) {
+                        LogDebug() << "Retries left: " << work->retries;
+                    }
 
+                    start_timer();
+                    _send_mavlink_ftp_message(work->payload);
                 },
             [&](UploadItem& item) {
                     if (--work->retries == 0) {

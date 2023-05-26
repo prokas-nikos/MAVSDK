@@ -35,8 +35,6 @@ MavlinkFtpServer::MavlinkFtpServer(ServerComponentImpl& server_component_impl) :
 
 void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
 {
-    LogDebug() << "server: " << this << " -> " << std::to_string(_server_component_impl.get_own_system_id()) << "/" << std::to_string(_server_component_impl.get_own_component_id());
-
     bool stream_send = false;
     mavlink_file_transfer_protocol_t ftp_req;
     mavlink_msg_file_transfer_protocol_decode(&msg, &ftp_req);
@@ -876,8 +874,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
     }
 
     // We have to test seek past EOF ourselves, lseek will allow seek past EOF
+    LogWarn() << "Offset!" << payload->offset << ", size: "<< _session_info.file_size;
     if (payload->offset >= _session_info.file_size) {
-        LogWarn() << "Offset!" << payload->offset << ", size: "<< _session_info.file_size;
         return ServerResult::ERR_EOF;
     }
 
@@ -887,6 +885,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
     }
 
     auto bytes_read = ::read(_session_info.fd, &payload->data[0], max_data_length);
+    LogErr() << "Read " << bytes_read << " of limit " << std::to_string(max_data_length);
 
     if (bytes_read < 0) {
         // Negative return indicates error other than eof

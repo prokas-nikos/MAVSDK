@@ -154,6 +154,10 @@ private:
         std::string remote_path{};
         std::string local_folder{};
         DownloadCallback callback{};
+        std::ofstream ofstream{};
+        std::size_t file_size{0};
+        std::size_t bytes_transferred{0};
+        int last_progress_percentage{-1};
     };
 
     struct UploadItem {
@@ -261,9 +265,11 @@ private:
     file_crc32_ResultCallback _current_crc32_result_callback{};
 
 
-    bool upload_open_file(Work& work, UploadItem& item);
-    bool upload_write_file(Work& work, UploadItem& item);
-    bool upload_close_file(Work& work, UploadItem& item);
+    bool download_start(Work& work, DownloadItem& item);
+    bool download_continue(Work& work, DownloadItem& item, PayloadHeader* payload);
+
+    bool upload_start(Work& work, UploadItem& item);
+    bool upload_continue(Work& work, UploadItem& item);
 
     static ClientResult result_from_nak(PayloadHeader* payload);
 
