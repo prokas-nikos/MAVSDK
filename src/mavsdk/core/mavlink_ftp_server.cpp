@@ -832,10 +832,11 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
     }
 
     // TODO: check again
-    // if (path.rfind(_root_dir, 0) != 0) {
-    //    LogWarn() << "FTP: invalid path " << path;
-    //    return ServerResult::ERR_FAIL;
-    // }
+    LogInfo() << "Finding " << path << " in " << _root_dir;
+    if (path.rfind(_root_dir, 0) != 0) {
+       LogWarn() << "FTP: invalid path " << path;
+       return ServerResult::ERR_FAIL;
+    }
     LogDebug() << "going to open: " << path;
 
     // fail only if requested open for read

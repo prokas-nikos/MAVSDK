@@ -297,3 +297,53 @@ TEST(SystemTest, FtpDownloadStopAndTryAgain)
         EXPECT_EQ(fut.get(), Ftp::Result::Success);
     }
 }
+
+TEST(SystemTest, FtpDownloadFileOutsideOfRoot)
+{
+    Mavsdk mavsdk_groundstation;
+    mavsdk_groundstation.set_configuration(
+        Mavsdk::Configuration{Mavsdk::Configuration::UsageType::GroundStation});
+    mavsdk_groundstation.set_timeout_s(reduced_timeout_s);
+
+    Mavsdk mavsdk_autopilot;
+    mavsdk_autopilot.set_configuration(
+        Mavsdk::Configuration{Mavsdk::Configuration::UsageType::Autopilot});
+    mavsdk_autopilot.set_timeout_s(reduced_timeout_s);
+
+    ASSERT_EQ(mavsdk_groundstation.add_any_connection("udp://:17000"), ConnectionResult::Success);
+    ASSERT_EQ(
+        mavsdk_autopilot.add_any_connection("udp://127.0.0.1:17000"), ConnectionResult::Success);
+
+    auto ftp_server = FtpServer{
+        mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
+
+    auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
+    ASSERT_TRUE(maybe_system);
+    auto system = maybe_system.value();
+
+    ASSERT_TRUE(system->has_autopilot());
+
+    ASSERT_TRUE(create_temp_file(temp_dir_provided / temp_file, 50));
+    ASSERT_TRUE(reset_directories(temp_dir_downloaded));
+
+    auto ftp = Ftp{system};
+
+    // Now we set the root dir and expect it to work.
+    ftp_server.set_root_dir(temp_dir_provided);
+
+    {
+        auto prom = std::promise<Ftp::Result>();
+        auto fut = prom.get_future();
+        ftp.download_async(
+            fs::path("") / ".." / temp_file,
+            temp_dir_downloaded,
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+                prom.set_value(result);
+            });
+
+        auto future_status = fut.wait_for(std::chrono::seconds(1));
+        ASSERT_EQ(future_status, std::future_status::ready);
+        EXPECT_EQ(fut.get(), Ftp::Result::ProtocolError);
+    }
+}
+
