@@ -170,7 +170,12 @@ private:
         int last_progress_percentage{-1};
     };
 
-    using Item = std::variant<DownloadItem, UploadItem>;
+    struct RemoveItem {
+        std::string path{};
+        ResultCallback callback{};
+    };
+
+    using Item = std::variant<DownloadItem, UploadItem, RemoveItem>;
     struct Work {
         Item item;
         PayloadHeader payload; // The last payload saved for retries
@@ -270,6 +275,8 @@ private:
 
     bool upload_start(Work& work, UploadItem& item);
     bool upload_continue(Work& work, UploadItem& item);
+
+    bool remove_start(Work& work, RemoveItem& item);
 
     static ClientResult result_from_nak(PayloadHeader* payload);
 

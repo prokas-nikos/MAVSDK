@@ -1,4 +1,5 @@
 #include "fs_helpers.h"
+#include <filesystem>
 #include <fstream>
 #include <vector>
 #include <cstring>
@@ -58,4 +59,9 @@ bool are_files_identical(const fs::path& path1, const fs::path& path2)
 
     // Make sure both files reached the end at the same time
     return !file1.good() && !file2.good();
+}
+
+bool file_exists(const fs::path& path)
+{
+    return fs::exists(path);
 }

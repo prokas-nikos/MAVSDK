@@ -117,6 +117,7 @@ bool fs_create_directory(const std::string& path)
 
 bool fs_remove(const std::string& path)
 {
+    LogWarn() << "Removing file: " << path;
     return (remove(path.c_str()) == 0);
 }
 

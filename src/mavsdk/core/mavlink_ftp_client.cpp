@@ -73,7 +73,13 @@ void MavlinkFtpClient::do_work()
                     if (!upload_start(*work, item)) {
                         work_queue_guard.pop_front();
                     }
-                }}, work->item);
+                },
+            [&](RemoveItem& item) {
+                    if (!remove_start(*work, item)) {
+                        work_queue_guard.pop_front();
+                    }
+
+            }}, work->item);
 }
 
 void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
@@ -184,6 +190,24 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                     item.callback(result_from_nak(payload), {});
                     work_queue_guard.pop_front();
                 }
+           },
+            [&](RemoveItem& item) {
+                if (payload->opcode == RSP_ACK) {
+                    if (payload->req_opcode == CMD_REMOVE_FILE) {
+                        stop_timer();
+                        item.callback(ClientResult::Success);
+                        work_queue_guard.pop_front();
+
+                    } else {
+                        LogWarn() << "Unexpected ack";
+                    }
+
+                } else if (payload->opcode == RSP_NAK) {
+                    stop_timer();
+                    item.callback(result_from_nak(payload));
+                    work_queue_guard.pop_front();
+                }
+
 
             }}, work->item);
 
@@ -454,6 +478,30 @@ bool MavlinkFtpClient::upload_continue(Work& work, UploadItem& item)
 
     return true;
 }
+
+bool MavlinkFtpClient::remove_start(Work& work, RemoveItem& item)
+{
+    if (item.path.length() >= max_data_length) {
+        item.callback(ClientResult::InvalidParameter);
+        return false;
+    }
+
+    work.last_opcode = CMD_REMOVE_FILE;
+    work.payload = {};
+    work.payload.seq_number = _seq_number++;
+    work.payload.session = 0;
+    work.payload.opcode = work.last_opcode;
+    work.payload.offset = 0;
+    strncpy(reinterpret_cast<char*>(work.payload.data), item.path.c_str(), max_data_length - 1);
+    work.payload.size = item.path.length() + 1;
+
+    start_timer();
+    _send_mavlink_ftp_message(work.payload);
+
+    return true;
+
+}
+
 void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
 {
     std::lock_guard<std::mutex> lock(_curr_op_mutex);
@@ -954,8 +1002,13 @@ MavlinkFtpClient::ClientResult MavlinkFtpClient::remove_file(const std::string& 
 
 void MavlinkFtpClient::remove_file_async(const std::string& path, ResultCallback callback)
 {
-    std::lock_guard<std::mutex> lock(_curr_op_mutex);
-    //_generic_command_async(CMD_REMOVE_FILE, 0, path, callback);
+    LogWarn() << "Path is: " << path;
+    auto item = RemoveItem{};
+    item.path = path;
+    item.callback = callback;
+    auto new_work = Work{std::move(item)};
+
+    _work_queue.push_back(std::make_shared<Work>(std::move(new_work)));
 }
 
 MavlinkFtpClient::ClientResult
@@ -1144,8 +1197,21 @@ void MavlinkFtpClient::timeout()
 
                     start_timer();
                     _send_mavlink_ftp_message(work->payload);
+                },
+            [&](RemoveItem& item) {
+                    if (--work->retries == 0) {
+                            item.callback(ClientResult::Timeout);
+                            work_queue_guard.pop_front();
+                            return;
+                        }
+                    if (_debugging) {
+                        LogDebug() << "Retries left: " << work->retries;
+                    }
 
-                }}, work->item);
+                    start_timer();
+                    _send_mavlink_ftp_message(work->payload);
+                    }
+                }, work->item);
 
     }
 

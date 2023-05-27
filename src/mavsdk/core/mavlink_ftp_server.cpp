@@ -754,7 +754,7 @@ MavlinkFtpServer::_work_list(PayloadHeader* payload, bool list_hidden)
     std::string path = _get_path(payload);
     if (path.rfind(_root_dir, 0) != 0) {
         LogWarn() << "FTP: invalid path " << path;
-        return ServerResult::ERR_FAIL;
+        return ServerResult::ERR_FAIL_FILE_PROTECTED;
     }
     if (!fs_exists(path)) {
         LogWarn() << "FTP: can't open path " << path;
@@ -1014,7 +1014,6 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_remove_file(PayloadHeader
 {
     std::string path = _get_path(payload);
     if (path.rfind(_root_dir, 0) != 0) {
-        LogWarn() << "FTP: invalid path " << path;
         return ServerResult::ERR_FAIL;
     }
 

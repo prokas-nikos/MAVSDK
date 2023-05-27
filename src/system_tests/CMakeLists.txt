@@ -11,6 +11,7 @@ add_executable(system_tests_runner
     telemetry_subscription.cpp
     fs_helpers.cpp
     ftp_download_file.cpp
+    ftp_remove_file.cpp
     ftp_upload_file.cpp
 )
 
