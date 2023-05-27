@@ -175,7 +175,13 @@ private:
         ResultCallback callback{};
     };
 
-    using Item = std::variant<DownloadItem, UploadItem, RemoveItem>;
+    struct RenameItem {
+        std::string from_path{};
+        std::string to_path{};
+        ResultCallback callback{};
+    };
+
+    using Item = std::variant<DownloadItem, UploadItem, RemoveItem, RenameItem>;
     struct Work {
         Item item;
         PayloadHeader payload; // The last payload saved for retries
@@ -277,6 +283,8 @@ private:
     bool upload_continue(Work& work, UploadItem& item);
 
     bool remove_start(Work& work, RemoveItem& item);
+
+    bool rename_start(Work& work, RenameItem& item);
 
     static ClientResult result_from_nak(PayloadHeader* payload);
 

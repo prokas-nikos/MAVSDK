@@ -78,7 +78,11 @@ void MavlinkFtpClient::do_work()
                     if (!remove_start(*work, item)) {
                         work_queue_guard.pop_front();
                     }
-
+                },
+            [&](RenameItem& item) {
+                    if (!rename_start(*work, item)) {
+                        work_queue_guard.pop_front();
+                    }
             }}, work->item);
 }
 
@@ -208,7 +212,23 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                     work_queue_guard.pop_front();
                 }
 
+            },
+            [&](RenameItem& item) {
+                if (payload->opcode == RSP_ACK) {
+                    if (payload->req_opcode == CMD_RENAME) {
+                        stop_timer();
+                        item.callback(ClientResult::Success);
+                        work_queue_guard.pop_front();
 
+                    } else {
+                        LogWarn() << "Unexpected ack";
+                    }
+
+                } else if (payload->opcode == RSP_NAK) {
+                    stop_timer();
+                    item.callback(result_from_nak(payload));
+                    work_queue_guard.pop_front();
+                }
             }}, work->item);
 
     work->last_seq_number = payload->seq_number;
@@ -500,6 +520,32 @@ bool MavlinkFtpClient::remove_start(Work& work, RemoveItem& item)
 
     return true;
 
+}
+
+bool MavlinkFtpClient::rename_start(Work& work, RenameItem& item)
+{
+    if (item.from_path.length() + item.to_path.length() + 1 >= max_data_length) {
+        item.callback(ClientResult::InvalidParameter);
+        return false;
+    }
+
+    work.last_opcode = CMD_RENAME;
+    work.payload.seq_number = _seq_number++;
+    work.payload.session = 0;
+    work.payload.opcode = work.last_opcode;
+    work.payload.offset = 0;
+    strncpy(reinterpret_cast<char*>(work.payload.data), item.from_path.c_str(), max_data_length - 1);
+    work.payload.size = item.from_path.length() + 1;
+    strncpy(
+        reinterpret_cast<char*>(&work.payload.data[work.payload.size]),
+        item.to_path.c_str(),
+        max_data_length - work.payload.size);
+    work.payload.size += item.to_path.length() + 1;
+    start_timer();
+
+    _send_mavlink_ftp_message(work.payload);
+
+    return true;
 }
 
 void MavlinkFtpClient::_process_ack(PayloadHeader* payload)
@@ -1002,7 +1048,6 @@ MavlinkFtpClient::ClientResult MavlinkFtpClient::remove_file(const std::string& 
 
 void MavlinkFtpClient::remove_file_async(const std::string& path, ResultCallback callback)
 {
-    LogWarn() << "Path is: " << path;
     auto item = RemoveItem{};
     item.path = path;
     item.callback = callback;
@@ -1026,30 +1071,13 @@ MavlinkFtpClient::rename(const std::string& from_path, const std::string& to_pat
 void MavlinkFtpClient::rename_async(
     const std::string& from_path, const std::string& to_path, ResultCallback callback)
 {
-    std::lock_guard<std::mutex> lock(_curr_op_mutex);
-    if (_curr_op != CMD_NONE) {
-        callback(ClientResult::Busy);
-        return;
-    }
-    if (from_path.length() + to_path.length() + 1 >= max_data_length) {
-        callback(ClientResult::InvalidParameter);
-        return;
-    }
+    auto item = RenameItem{};
+    item.from_path = from_path;
+    item.to_path = to_path;
+    item.callback = callback;
+    auto new_work = Work{std::move(item)};
 
-    auto payload = PayloadHeader{};
-    payload.seq_number = _seq_number++;
-    payload.session = 0;
-    payload.opcode = _curr_op = CMD_RENAME;
-    payload.offset = 0;
-    strncpy(reinterpret_cast<char*>(payload.data), from_path.c_str(), max_data_length - 1);
-    payload.size = from_path.length() + 1;
-    strncpy(
-        reinterpret_cast<char*>(&payload.data[payload.size]),
-        to_path.c_str(),
-        max_data_length - payload.size);
-    payload.size += to_path.length() + 1;
-    _curr_op_result_callback = callback;
-    _send_mavlink_ftp_message(payload);
+    _work_queue.push_back(std::make_shared<Work>(std::move(new_work)));
 }
 
 std::pair<MavlinkFtpClient::ClientResult, bool>
@@ -1210,9 +1238,21 @@ void MavlinkFtpClient::timeout()
 
                     start_timer();
                     _send_mavlink_ftp_message(work->payload);
+                    },
+            [&](RenameItem& item) {
+                    if (--work->retries == 0) {
+                            item.callback(ClientResult::Timeout);
+                            work_queue_guard.pop_front();
+                            return;
+                        }
+                    if (_debugging) {
+                        LogDebug() << "Retries left: " << work->retries;
                     }
-                }, work->item);
 
+                    start_timer();
+                    _send_mavlink_ftp_message(work->payload);
+                }},
+            work->item);
     }
 
     //return;

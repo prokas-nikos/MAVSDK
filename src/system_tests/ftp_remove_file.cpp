@@ -131,4 +131,3 @@ TEST(SystemTest, FtpRemoveFileOutsideOfRoot)
 
     EXPECT_EQ(ftp.remove_file(fs::path("..") / temp_file), Ftp::Result::ProtocolError);
 }
-
