@@ -4,7 +4,6 @@
 #include <vector>
 #include <cstring>
 
-
 bool create_temp_file(const fs::path& path, size_t len)
 {
     std::vector<uint8_t> data;
@@ -51,7 +50,8 @@ bool are_files_identical(const fs::path& path1, const fs::path& path2)
         file1.read(buffer1, sizeof(buffer1));
         file2.read(buffer2, sizeof(buffer2));
 
-        if (file1.gcount() != file2.gcount() || std::memcmp(buffer1, buffer2, file1.gcount()) != 0) {
+        if (file1.gcount() != file2.gcount() ||
+            std::memcmp(buffer1, buffer2, file1.gcount()) != 0) {
             // Files are not identical
             return false;
         }

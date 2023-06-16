@@ -243,7 +243,6 @@ private:
 
     void _reset();
 
-
     // prepend a root directory to each file/dir access to avoid enumerating the full FS tree
     std::string _root_dir{};
 

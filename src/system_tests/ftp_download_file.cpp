@@ -257,8 +257,8 @@ TEST(SystemTest, FtpDownloadStopAndTryAgain)
         temp_dir_downloaded,
         [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (progress_data.bytes_transferred > 500) {
-                    got_half = true;
-                }
+                got_half = true;
+            }
             if (result != Ftp::Result::Next) {
                 prom.set_value(result);
             } else {
@@ -346,4 +346,3 @@ TEST(SystemTest, FtpDownloadFileOutsideOfRoot)
         EXPECT_EQ(fut.get(), Ftp::Result::ProtocolError);
     }
 }
-

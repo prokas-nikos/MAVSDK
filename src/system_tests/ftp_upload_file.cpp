@@ -76,8 +76,9 @@ TEST(SystemTest, FtpUploadFile)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            temp_dir_to_upload / temp_file, "/",
-                [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+            temp_dir_to_upload / temp_file,
+            "/",
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
                 } else {
@@ -131,8 +132,9 @@ TEST(SystemTest, FtpUploadBigFile)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            temp_dir_to_upload / temp_file, "/",
-                [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+            temp_dir_to_upload / temp_file,
+            "/",
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
                 } else {
@@ -192,8 +194,9 @@ TEST(SystemTest, FtpUploadBigFileLossy)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            temp_dir_to_upload / temp_file, "/",
-                [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+            temp_dir_to_upload / temp_file,
+            "/",
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
                 } else {
@@ -255,12 +258,13 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
 
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
-        ftp.upload_async(
-            temp_dir_to_upload / temp_file, "/",
-                [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
+    ftp.upload_async(
+        temp_dir_to_upload / temp_file,
+        "/",
+        [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (progress_data.bytes_transferred > 500) {
-                    got_half = true;
-                }
+                got_half = true;
+            }
             if (result != Ftp::Result::Next) {
                 prom.set_value(result);
             } else {
@@ -283,8 +287,9 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            temp_dir_to_upload / temp_file, "/",
-                [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
+            temp_dir_to_upload / temp_file,
+            "/",
+            [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
                 } else {
@@ -339,8 +344,9 @@ TEST(SystemTest, FtpUploadFileOutsideOfRoot)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            temp_dir_to_upload / temp_file, "../",
-                [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
+            temp_dir_to_upload / temp_file,
+            "../",
+            [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 prom.set_value(result);
             });
 

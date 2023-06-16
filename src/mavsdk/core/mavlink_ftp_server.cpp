@@ -23,7 +23,6 @@
 
 namespace mavsdk {
 
-
 MavlinkFtpServer::MavlinkFtpServer(ServerComponentImpl& server_component_impl) :
     _server_component_impl(server_component_impl)
 {
@@ -66,7 +65,7 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
                    << " offset: " << (int)payload->offset << " seq: " << payload->seq_number;
 
         // check the sequence number: if this is a resent request, resend the last response
-        //if (_last_reply_valid) {
+        // if (_last_reply_valid) {
         //    if (payload->seq_number + 1 == _last_reply_seq) {
         //        // This is the same request as the one we replied to last.
         //        LogWarn() << "Wrong sequence - resend last response";
@@ -158,7 +157,6 @@ void MavlinkFtpServer::process_mavlink_ftp_message(const mavlink_message_t& msg)
                 LogInfo() << "OPC:CMD_CALC_FILE_CRC32";
                 error_code = _work_calc_file_CRC32(payload);
                 break;
-
 
             default:
                 // Not for us, ignore it.
@@ -812,7 +810,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
 {
     if (_session_info.fd >= 0) {
         _reset();
-        //return ServerResult::ERR_NO_SESSIONS_AVAILABLE;
+        // return ServerResult::ERR_NO_SESSIONS_AVAILABLE;
     }
 
     LogWarn() << (_root_dir.empty() ? "EMPTY" : "not empty");
@@ -834,8 +832,8 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_open(PayloadHeader* paylo
     // TODO: check again
     LogInfo() << "Finding " << path << " in " << _root_dir;
     if (path.rfind(_root_dir, 0) != 0) {
-       LogWarn() << "FTP: invalid path " << path;
-       return ServerResult::ERR_FAIL;
+        LogWarn() << "FTP: invalid path " << path;
+        return ServerResult::ERR_FAIL;
     }
     LogDebug() << "going to open: " << path;
 
@@ -871,11 +869,11 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_read(PayloadHeader* paylo
 {
     if (payload->session != 0 || _session_info.fd < 0) {
         _reset();
-        //return ServerResult::ERR_INVALID_SESSION;
+        // return ServerResult::ERR_INVALID_SESSION;
     }
 
     // We have to test seek past EOF ourselves, lseek will allow seek past EOF
-    LogWarn() << "Offset!" << payload->offset << ", size: "<< _session_info.file_size;
+    LogWarn() << "Offset!" << payload->offset << ", size: " << _session_info.file_size;
     if (payload->offset >= _session_info.file_size) {
         return ServerResult::ERR_EOF;
     }
@@ -902,7 +900,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_burst(PayloadHeader* payl
 {
     if (payload->session != 0 && _session_info.fd < 0) {
         _reset();
-        //return ServerResult::ERR_INVALID_SESSION;
+        // return ServerResult::ERR_INVALID_SESSION;
     }
 
     // Setup for streaming sends
@@ -919,7 +917,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_write(PayloadHeader* payl
 {
     if (payload->session != 0 && _session_info.fd < 0) {
         _reset();
-        //return ServerResult::ERR_INVALID_SESSION;
+        // return ServerResult::ERR_INVALID_SESSION;
     }
 
     if (lseek(_session_info.fd, payload->offset, SEEK_SET) < 0) {
@@ -948,7 +946,7 @@ MavlinkFtpServer::ServerResult MavlinkFtpServer::_work_terminate(PayloadHeader* 
 {
     if (payload->session != 0 || _session_info.fd < 0) {
         _reset();
-        //return ServerResult::ERR_INVALID_SESSION;
+        // return ServerResult::ERR_INVALID_SESSION;
     }
 
     payload->size = 0;

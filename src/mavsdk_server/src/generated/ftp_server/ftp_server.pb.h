@@ -68,18 +68,12 @@ extern SetRootDirResponseDefaultTypeInternal _SetRootDirResponse_default_instanc
 }  // namespace rpc
 }  // namespace mavsdk
 PROTOBUF_NAMESPACE_OPEN
-<<<<<<< HEAD
 template <>
 ::mavsdk::rpc::ftp_server::FtpServerResult* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::FtpServerResult>(Arena*);
 template <>
 ::mavsdk::rpc::ftp_server::SetRootDirRequest* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::SetRootDirRequest>(Arena*);
 template <>
 ::mavsdk::rpc::ftp_server::SetRootDirResponse* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::SetRootDirResponse>(Arena*);
-=======
-template<> ::mavsdk::rpc::ftp_server::FtpServerResult* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::FtpServerResult>(Arena*);
-template<> ::mavsdk::rpc::ftp_server::SetRootDirRequest* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::SetRootDirRequest>(Arena*);
-template<> ::mavsdk::rpc::ftp_server::SetRootDirResponse* Arena::CreateMaybeMessage<::mavsdk::rpc::ftp_server::SetRootDirResponse>(Arena*);
->>>>>>> 7309a30a (Download and set_root_dir working)
 PROTOBUF_NAMESPACE_CLOSE
 
 namespace mavsdk {
@@ -90,21 +84,11 @@ enum FtpServerResult_Result : int {
   FtpServerResult_Result_RESULT_SUCCESS = 1,
   FtpServerResult_Result_RESULT_DOES_NOT_EXIST = 2,
   FtpServerResult_Result_RESULT_BUSY = 3,
-<<<<<<< HEAD
   FtpServerResult_Result_FtpServerResult_Result_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   FtpServerResult_Result_FtpServerResult_Result_INT_MAX_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::max(),
 };
-=======
-  FtpServerResult_Result_FtpServerResult_Result_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  FtpServerResult_Result_FtpServerResult_Result_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
-};
-bool FtpServerResult_Result_IsValid(int value);
-constexpr FtpServerResult_Result FtpServerResult_Result_Result_MIN = FtpServerResult_Result_RESULT_UNKNOWN;
-constexpr FtpServerResult_Result FtpServerResult_Result_Result_MAX = FtpServerResult_Result_RESULT_BUSY;
-constexpr int FtpServerResult_Result_Result_ARRAYSIZE = FtpServerResult_Result_Result_MAX + 1;
->>>>>>> 7309a30a (Download and set_root_dir working)
 
 bool FtpServerResult_Result_IsValid(int value);
 constexpr FtpServerResult_Result FtpServerResult_Result_Result_MIN = static_cast<FtpServerResult_Result>(0);
@@ -132,7 +116,6 @@ inline bool FtpServerResult_Result_Parse(absl::string_view name, FtpServerResult
 
 // ===================================================================
 
-<<<<<<< HEAD
 
 // -------------------------------------------------------------------
 
@@ -144,15 +127,6 @@ class SetRootDirRequest final :
   template<typename = void>
   explicit PROTOBUF_CONSTEXPR SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-=======
-class SetRootDirRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mavsdk.rpc.ftp_server.SetRootDirRequest) */ {
- public:
-  inline SetRootDirRequest() : SetRootDirRequest(nullptr) {}
-  ~SetRootDirRequest() override;
-  explicit PROTOBUF_CONSTEXPR SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
->>>>>>> 7309a30a (Download and set_root_dir working)
   SetRootDirRequest(const SetRootDirRequest& from);
   SetRootDirRequest(SetRootDirRequest&& from) noexcept
     : SetRootDirRequest() {
@@ -233,13 +207,9 @@ class SetRootDirRequest final :
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
   void CopyFrom(const SetRootDirRequest& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-<<<<<<< HEAD
   void MergeFrom( const SetRootDirRequest& from) {
     SetRootDirRequest::MergeImpl(*this, from);
   }
-=======
-  void MergeFrom(const SetRootDirRequest& from);
->>>>>>> 7309a30a (Download and set_root_dir working)
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
   public:
@@ -260,20 +230,11 @@ class SetRootDirRequest final :
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-<<<<<<< HEAD
   static ::absl::string_view FullMessageName() {
     return "mavsdk.rpc.ftp_server.SetRootDirRequest";
   }
   protected:
   explicit SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-=======
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "mavsdk.rpc.ftp_server.SetRootDirRequest";
-  }
-  protected:
-  explicit SetRootDirRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
->>>>>>> 7309a30a (Download and set_root_dir working)
   public:
 
   static const ClassData _class_data_;
@@ -307,10 +268,7 @@ class SetRootDirRequest final :
       const std::string& value);
   std::string* _internal_mutable_path();
 
-<<<<<<< HEAD
   public:
-=======
->>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(class_scope:mavsdk.rpc.ftp_server.SetRootDirRequest)
  private:
   class _Internal;
@@ -331,10 +289,7 @@ class SetRootDirResponse final :
  public:
   inline SetRootDirResponse() : SetRootDirResponse(nullptr) {}
   ~SetRootDirResponse() override;
-<<<<<<< HEAD
   template<typename = void>
-=======
->>>>>>> 7309a30a (Download and set_root_dir working)
   explicit PROTOBUF_CONSTEXPR SetRootDirResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   SetRootDirResponse(const SetRootDirResponse& from);
@@ -417,13 +372,9 @@ class SetRootDirResponse final :
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
   void CopyFrom(const SetRootDirResponse& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-<<<<<<< HEAD
   void MergeFrom( const SetRootDirResponse& from) {
     SetRootDirResponse::MergeImpl(*this, from);
   }
-=======
-  void MergeFrom(const SetRootDirResponse& from);
->>>>>>> 7309a30a (Download and set_root_dir working)
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
   public:
@@ -444,20 +395,11 @@ class SetRootDirResponse final :
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-<<<<<<< HEAD
   static ::absl::string_view FullMessageName() {
     return "mavsdk.rpc.ftp_server.SetRootDirResponse";
   }
   protected:
   explicit SetRootDirResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-=======
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "mavsdk.rpc.ftp_server.SetRootDirResponse";
-  }
-  protected:
-  explicit SetRootDirResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
->>>>>>> 7309a30a (Download and set_root_dir working)
   public:
 
   static const ClassData _class_data_;
@@ -486,10 +428,6 @@ class SetRootDirResponse final :
   void unsafe_arena_set_allocated_ftp_server_result(
       ::mavsdk::rpc::ftp_server::FtpServerResult* ftp_server_result);
   ::mavsdk::rpc::ftp_server::FtpServerResult* unsafe_arena_release_ftp_server_result();
-<<<<<<< HEAD
-=======
-
->>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(class_scope:mavsdk.rpc.ftp_server.SetRootDirResponse)
  private:
   class _Internal;
@@ -631,23 +569,11 @@ class FtpServerResult final :
 
   // nested types ----------------------------------------------------
 
-<<<<<<< HEAD
   using Result = FtpServerResult_Result;
   static constexpr Result RESULT_UNKNOWN = FtpServerResult_Result_RESULT_UNKNOWN;
   static constexpr Result RESULT_SUCCESS = FtpServerResult_Result_RESULT_SUCCESS;
   static constexpr Result RESULT_DOES_NOT_EXIST = FtpServerResult_Result_RESULT_DOES_NOT_EXIST;
   static constexpr Result RESULT_BUSY = FtpServerResult_Result_RESULT_BUSY;
-=======
-  typedef FtpServerResult_Result Result;
-  static constexpr Result RESULT_UNKNOWN =
-    FtpServerResult_Result_RESULT_UNKNOWN;
-  static constexpr Result RESULT_SUCCESS =
-    FtpServerResult_Result_RESULT_SUCCESS;
-  static constexpr Result RESULT_DOES_NOT_EXIST =
-    FtpServerResult_Result_RESULT_DOES_NOT_EXIST;
-  static constexpr Result RESULT_BUSY =
-    FtpServerResult_Result_RESULT_BUSY;
->>>>>>> 7309a30a (Download and set_root_dir working)
   static inline bool Result_IsValid(int value) {
     return FtpServerResult_Result_IsValid(value);
   }
@@ -729,38 +655,23 @@ class FtpServerResult final :
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-<<<<<<< HEAD
 // -------------------------------------------------------------------
 
-=======
->>>>>>> 7309a30a (Download and set_root_dir working)
 // SetRootDirRequest
 
 // string path = 1;
 inline void SetRootDirRequest::clear_path() {
-<<<<<<< HEAD
   _impl_.path_.ClearToEmpty();
-=======
-  path_.ClearToEmpty();
->>>>>>> 7309a30a (Download and set_root_dir working)
 }
 inline const std::string& SetRootDirRequest::path() const {
   // @@protoc_insertion_point(field_get:mavsdk.rpc.ftp_server.SetRootDirRequest.path)
   return _internal_path();
 }
-<<<<<<< HEAD
 template <typename Arg_, typename... Args_>
 inline PROTOBUF_ALWAYS_INLINE void SetRootDirRequest::set_path(Arg_&& arg,
                                                      Args_... args) {
   ;
   _impl_.path_.Set(static_cast<Arg_&&>(arg), args..., GetArenaForAllocation());
-=======
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void SetRootDirRequest::set_path(ArgT0&& arg0, ArgT... args) {
- 
- path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
->>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(field_set:mavsdk.rpc.ftp_server.SetRootDirRequest.path)
 }
 inline std::string* SetRootDirRequest::mutable_path() {
@@ -769,7 +680,6 @@ inline std::string* SetRootDirRequest::mutable_path() {
   return _s;
 }
 inline const std::string& SetRootDirRequest::_internal_path() const {
-<<<<<<< HEAD
   return _impl_.path_.Get();
 }
 inline void SetRootDirRequest::_internal_set_path(const std::string& value) {
@@ -793,34 +703,6 @@ inline void SetRootDirRequest::set_allocated_path(std::string* value) {
           _impl_.path_.Set("", GetArenaForAllocation());
         }
   #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-=======
-  return path_.Get();
-}
-inline void SetRootDirRequest::_internal_set_path(const std::string& value) {
-  
-  path_.Set(value, GetArenaForAllocation());
-}
-inline std::string* SetRootDirRequest::_internal_mutable_path() {
-  
-  return path_.Mutable(GetArenaForAllocation());
-}
-inline std::string* SetRootDirRequest::release_path() {
-  // @@protoc_insertion_point(field_release:mavsdk.rpc.ftp_server.SetRootDirRequest.path)
-  return path_.Release();
-}
-inline void SetRootDirRequest::set_allocated_path(std::string* path) {
-  if (path != nullptr) {
-    
-  } else {
-    
-  }
-  path_.SetAllocated(path, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (path_.IsDefault()) {
-    path_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
->>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(field_set_allocated:mavsdk.rpc.ftp_server.SetRootDirRequest.path)
 }
 
@@ -829,7 +711,6 @@ inline void SetRootDirRequest::set_allocated_path(std::string* path) {
 // SetRootDirResponse
 
 // .mavsdk.rpc.ftp_server.FtpServerResult ftp_server_result = 1;
-<<<<<<< HEAD
 inline bool SetRootDirResponse::has_ftp_server_result() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.ftp_server_result_ != nullptr);
@@ -841,22 +722,6 @@ inline void SetRootDirResponse::clear_ftp_server_result() {
 }
 inline const ::mavsdk::rpc::ftp_server::FtpServerResult& SetRootDirResponse::_internal_ftp_server_result() const {
   const ::mavsdk::rpc::ftp_server::FtpServerResult* p = _impl_.ftp_server_result_;
-=======
-inline bool SetRootDirResponse::_internal_has_ftp_server_result() const {
-  return this != internal_default_instance() && ftp_server_result_ != nullptr;
-}
-inline bool SetRootDirResponse::has_ftp_server_result() const {
-  return _internal_has_ftp_server_result();
-}
-inline void SetRootDirResponse::clear_ftp_server_result() {
-  if (GetArenaForAllocation() == nullptr && ftp_server_result_ != nullptr) {
-    delete ftp_server_result_;
-  }
-  ftp_server_result_ = nullptr;
-}
-inline const ::mavsdk::rpc::ftp_server::FtpServerResult& SetRootDirResponse::_internal_ftp_server_result() const {
-  const ::mavsdk::rpc::ftp_server::FtpServerResult* p = ftp_server_result_;
->>>>>>> 7309a30a (Download and set_root_dir working)
   return p != nullptr ? *p : reinterpret_cast<const ::mavsdk::rpc::ftp_server::FtpServerResult&>(
       ::mavsdk::rpc::ftp_server::_FtpServerResult_default_instance_);
 }
@@ -878,15 +743,9 @@ inline void SetRootDirResponse::unsafe_arena_set_allocated_ftp_server_result(
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mavsdk.rpc.ftp_server.SetRootDirResponse.ftp_server_result)
 }
 inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::release_ftp_server_result() {
-<<<<<<< HEAD
   _impl_._has_bits_[0] &= ~0x00000001u;
   ::mavsdk::rpc::ftp_server::FtpServerResult* temp = _impl_.ftp_server_result_;
   _impl_.ftp_server_result_ = nullptr;
-=======
-  
-  ::mavsdk::rpc::ftp_server::FtpServerResult* temp = ftp_server_result_;
-  ftp_server_result_ = nullptr;
->>>>>>> 7309a30a (Download and set_root_dir working)
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
   auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
   temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
@@ -900,7 +759,6 @@ inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::release_f
 }
 inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::unsafe_arena_release_ftp_server_result() {
   // @@protoc_insertion_point(field_release:mavsdk.rpc.ftp_server.SetRootDirResponse.ftp_server_result)
-<<<<<<< HEAD
   _impl_._has_bits_[0] &= ~0x00000001u;
   ::mavsdk::rpc::ftp_server::FtpServerResult* temp = _impl_.ftp_server_result_;
   _impl_.ftp_server_result_ = nullptr;
@@ -909,16 +767,6 @@ inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::unsafe_ar
 inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::_internal_mutable_ftp_server_result() {
   _impl_._has_bits_[0] |= 0x00000001u;
   if (_impl_.ftp_server_result_ == nullptr) {
-=======
-  
-  ::mavsdk::rpc::ftp_server::FtpServerResult* temp = ftp_server_result_;
-  ftp_server_result_ = nullptr;
-  return temp;
-}
-inline ::mavsdk::rpc::ftp_server::FtpServerResult* SetRootDirResponse::_internal_mutable_ftp_server_result() {
-  
-  if (ftp_server_result_ == nullptr) {
->>>>>>> 7309a30a (Download and set_root_dir working)
     auto* p = CreateMaybeMessage<::mavsdk::rpc::ftp_server::FtpServerResult>(GetArenaForAllocation());
     _impl_.ftp_server_result_ = p;
   }
@@ -945,11 +793,7 @@ inline void SetRootDirResponse::set_allocated_ftp_server_result(::mavsdk::rpc::f
   } else {
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
-<<<<<<< HEAD
   _impl_.ftp_server_result_ = ftp_server_result;
-=======
-  ftp_server_result_ = ftp_server_result;
->>>>>>> 7309a30a (Download and set_root_dir working)
   // @@protoc_insertion_point(field_set_allocated:mavsdk.rpc.ftp_server.SetRootDirResponse.ftp_server_result)
 }
 
