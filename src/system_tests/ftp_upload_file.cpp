@@ -338,7 +338,7 @@ TEST(SystemTest, FtpUploadFileOutsideOfRoot)
     auto ftp = Ftp{system};
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     {
         auto prom = std::promise<Ftp::Result>();
