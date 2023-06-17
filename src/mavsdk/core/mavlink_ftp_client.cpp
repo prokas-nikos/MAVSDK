@@ -89,7 +89,6 @@ void MavlinkFtpClient::do_work()
 
 void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
 {
-    bool stream_send = false;
     mavlink_file_transfer_protocol_t ftp_req;
     mavlink_msg_file_transfer_protocol_decode(&msg, &ftp_req);
 
@@ -370,7 +369,11 @@ bool MavlinkFtpClient::download_continue(Work& work, DownloadItem& item, Payload
                            << " bytes";
             }
         }
-        item.callback(ClientResult::Next, ProgressData{item.bytes_transferred, item.file_size});
+        item.callback(
+            ClientResult::Next,
+            ProgressData{
+                static_cast<uint32_t>(item.bytes_transferred),
+                static_cast<uint32_t>(item.file_size)});
     }
 
     if (item.bytes_transferred < item.file_size) {
@@ -490,7 +493,10 @@ bool MavlinkFtpClient::upload_continue(Work& work, UploadItem& item)
         _send_mavlink_ftp_message(work.payload);
     }
 
-    item.callback(ClientResult::Next, ProgressData{item.bytes_transferred, item.file_size});
+    item.callback(
+        ClientResult::Next,
+        ProgressData{
+            static_cast<uint32_t>(item.bytes_transferred), static_cast<uint32_t>(item.file_size)});
 
     return true;
 }

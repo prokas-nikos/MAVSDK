@@ -244,10 +244,7 @@ private:
     bool _target_component_id_set{false};
     Opcode _curr_op = CMD_NONE;
     std::mutex _curr_op_mutex{};
-    mavlink_message_t _last_command{};
-    bool _last_command_timer_running{false};
     std::mutex _timer_mutex{};
-    uint32_t _last_command_retries = 0;
     std::string _last_path{};
     uint16_t _seq_number = 0;
     OfstreamWithPath _ofstream{};
@@ -312,10 +309,6 @@ private:
 
     // prepend a root directory to each file/dir access to avoid enumerating the full FS tree
     std::string _root_dir{"."};
-
-    bool _last_reply_valid = false;
-    uint16_t _last_reply_seq = 0;
-    mavlink_message_t _last_reply{};
 
     void process_mavlink_ftp_message(const mavlink_message_t& msg);
 
