@@ -1,4 +1,5 @@
 #include "fs_helpers.h"
+#include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -37,8 +38,13 @@ bool are_files_identical(const fs::path& path1, const fs::path& path2)
     std::ifstream file1(path1, std::ios::binary);
     std::ifstream file2(path2, std::ios::binary);
 
-    if (!file1 || !file2) {
-        // Failed to open one or both files
+    if (!file1) {
+        std::cout << "Could not open " << path1 << std::endl;
+        return false;
+    }
+
+    if (!file2) {
+        std::cout << "Could not open " << path2 << std::endl;
         return false;
     }
 
