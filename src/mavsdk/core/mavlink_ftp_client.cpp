@@ -148,6 +148,7 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                         }
                     } else if (payload->req_opcode == CMD_TERMINATE_SESSION) {
                         stop_timer();
+                        item.ofstream.close();
                         item.callback(ClientResult::Success, {});
                         work_queue_guard.pop_front();
 
@@ -175,6 +176,7 @@ void MavlinkFtpClient::process_mavlink_ftp_message(const mavlink_message_t& msg)
                         }
                     } else if (payload->req_opcode == CMD_TERMINATE_SESSION) {
                         stop_timer();
+                        item.ifstream.close();
                         item.callback(ClientResult::Success, {});
                         work_queue_guard.pop_front();
 
