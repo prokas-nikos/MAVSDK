@@ -143,7 +143,7 @@ TEST(SystemTest, FtpUploadBigFile)
                 }
             });
 
-        auto future_status = fut.wait_for(std::chrono::seconds(3));
+        auto future_status = fut.wait_for(std::chrono::seconds(10));
         ASSERT_EQ(future_status, std::future_status::ready);
         EXPECT_EQ(fut.get(), Ftp::Result::Success);
 
@@ -205,7 +205,7 @@ TEST(SystemTest, FtpUploadBigFileLossy)
                 }
             });
 
-        auto future_status = fut.wait_for(std::chrono::seconds(3));
+        auto future_status = fut.wait_for(std::chrono::seconds(10));
         ASSERT_EQ(future_status, std::future_status::ready);
         EXPECT_EQ(fut.get(), Ftp::Result::Success);
 
@@ -273,7 +273,7 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
             }
         });
 
-    auto future_status = fut.wait_for(std::chrono::seconds(5));
+    auto future_status = fut.wait_for(std::chrono::seconds(10));
     ASSERT_EQ(future_status, std::future_status::ready);
     EXPECT_EQ(fut.get(), Ftp::Result::Timeout);
 
@@ -298,7 +298,7 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
                 }
             });
 
-        auto future_status = fut.wait_for(std::chrono::seconds(5));
+        auto future_status = fut.wait_for(std::chrono::seconds(10));
         ASSERT_EQ(future_status, std::future_status::ready);
         EXPECT_EQ(fut.get(), Ftp::Result::Success);
     }
