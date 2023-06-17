@@ -58,7 +58,7 @@ jobs:
         with:
           submodules: recursive
       - name: install
-        run: sudo apt-get update && sudo apt-get install -y libjsoncpp-dev libcurl4-openssl-dev libtinyxml2-dev
+        run: sudo apt-get update && sudo apt-get install -y libjsoncpp-dev libcurl4-openssl-dev libtinyxml2-dev valgrind
       - name: install mavlink on the system
         run: |
             cmake -Bthird_party/mavlink/build -Sthird_party/mavlink
@@ -70,7 +70,7 @@ jobs:
       - name: unit tests
         run: ./build/release/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: ./build/release/src/system_tests/system_tests_runner
+        run: valgrind ./build/release/src/system_tests/system_tests_runner
 
   ubuntu-superbuild:
     name: ${{ matrix.ubuntu_image }} (mavsdk_server, superbuild)
@@ -126,6 +126,8 @@ jobs:
         with:
           path: ~/.hunter
           key: ${{ github.job }}-${{ hashFiles('~/.hunter/**') }}
+      - name: install
+        run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: install mavlink on the system
         run: |
             cmake -Bthird_party/mavlink/build -Sthird_party/mavlink
@@ -137,7 +139,7 @@ jobs:
       - name: unit tests
         run: ./build/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: ./build/src/system_tests/system_tests_runner
+        run: valgrind ./build/src/system_tests/system_tests_runner
 
   ubuntu20-proto-check:
     name: ubuntu-22.04 (proto check)
