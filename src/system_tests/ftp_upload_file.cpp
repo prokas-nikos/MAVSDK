@@ -60,7 +60,7 @@ TEST(SystemTest, FtpUploadFile)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+            (temp_dir_to_upload / temp_file).string(),
             ".",
             [&prom](Ftp::Result result, Ftp::ProgressData) { prom.set_value(result); });
 
@@ -70,13 +70,13 @@ TEST(SystemTest, FtpUploadFile)
     }
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+            (temp_dir_to_upload / temp_file).string(),
             "/",
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
@@ -126,13 +126,13 @@ TEST(SystemTest, FtpUploadBigFile)
 
     auto ftp = Ftp{system};
 
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+           (temp_dir_to_upload / temp_file).string(),
             "/",
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
@@ -188,13 +188,13 @@ TEST(SystemTest, FtpUploadBigFileLossy)
 
     auto ftp = Ftp{system};
 
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+            (temp_dir_to_upload / temp_file).string(),
             "/",
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
@@ -243,7 +243,7 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
     auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
 
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
@@ -259,7 +259,7 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
     ftp.upload_async(
-        std::string(temp_dir_to_upload / temp_file),
+        (temp_dir_to_upload / temp_file).string(),
         "/",
         [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (progress_data.bytes_transferred > 500) {
@@ -287,7 +287,7 @@ TEST(SystemTest, FtpUploadStopAndTryAgain)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+            (temp_dir_to_upload / temp_file).string(),
             "/",
             [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
@@ -338,13 +338,13 @@ TEST(SystemTest, FtpUploadFileOutsideOfRoot)
     auto ftp = Ftp{system};
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-            std::string(temp_dir_to_upload / temp_file),
+            (temp_dir_to_upload / temp_file).string(),
             "../",
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 prom.set_value(result);

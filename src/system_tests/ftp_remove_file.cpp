@@ -50,12 +50,12 @@ TEST(SystemTest, FtpRemoveFile)
 
     // First we try to remove the file without the root directory set.
     // We expect that it does not exist as we don't have any permission.
-    EXPECT_EQ(ftp.remove_file(std::string(temp_file)), Ftp::Result::FileDoesNotExist);
+    EXPECT_EQ(ftp.remove_file(temp_file.string()), Ftp::Result::FileDoesNotExist);
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
-    EXPECT_EQ(ftp.remove_file(std::string(temp_file)), Ftp::Result::Success);
+    EXPECT_EQ(ftp.remove_file(temp_file.string()), Ftp::Result::Success);
 
     EXPECT_FALSE(file_exists(temp_dir_provided / temp_file));
 }
@@ -90,9 +90,9 @@ TEST(SystemTest, FtpRemoveFileThatDoesNotExist)
 
     auto ftp = Ftp{system};
 
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
-    EXPECT_EQ(ftp.remove_file(std::string(temp_file)), Ftp::Result::FileDoesNotExist);
+    EXPECT_EQ(ftp.remove_file(temp_file.string()), Ftp::Result::FileDoesNotExist);
 
     EXPECT_FALSE(file_exists(temp_dir_provided / temp_file));
 }
@@ -127,7 +127,7 @@ TEST(SystemTest, FtpRemoveFileOutsideOfRoot)
 
     auto ftp = Ftp{system};
 
-    ftp_server.set_root_dir(std::string(temp_dir_provided));
+    ftp_server.set_root_dir(temp_dir_provided.string());
 
-    EXPECT_EQ(ftp.remove_file(std::string(fs::path("..") / temp_file)), Ftp::Result::ProtocolError);
+    EXPECT_EQ(ftp.remove_file((fs::path("..") / temp_file).string()), Ftp::Result::ProtocolError);
 }
