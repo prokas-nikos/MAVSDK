@@ -1,5 +1,7 @@
 #include "fs_helpers.h"
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -48,23 +50,11 @@ bool are_files_identical(const fs::path& path1, const fs::path& path2)
         return false;
     }
 
-    // Read the files' contents and compare them
-    char buffer1[4096];
-    char buffer2[4096];
+    std::istreambuf_iterator<char> begin1(file1);
+    std::istreambuf_iterator<char> begin2(file2);
+    std::istreambuf_iterator<char> end;
 
-    do {
-        file1.read(buffer1, sizeof(buffer1));
-        file2.read(buffer2, sizeof(buffer2));
-
-        if (file1.gcount() != file2.gcount() ||
-            std::memcmp(buffer1, buffer2, file1.gcount()) != 0) {
-            // Files are not identical
-            return false;
-        }
-    } while (file1.good() || file2.good());
-
-    // Make sure both files reached the end at the same time
-    return !file1.good() && !file2.good();
+    return std::equal(begin1, end, begin2, end);
 }
 
 bool file_exists(const fs::path& path)
