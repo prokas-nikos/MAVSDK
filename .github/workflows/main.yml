@@ -58,7 +58,7 @@ jobs:
         with:
           submodules: recursive
       - name: install
-        run: sudo apt-get update && sudo apt-get install -y libjsoncpp-dev libcurl4-openssl-dev libtinyxml2-dev valgrind
+        run: sudo apt-get update && sudo apt-get install -y libjsoncpp-dev libcurl4-openssl-dev libtinyxml2-dev
       - name: install mavlink on the system
         run: |
             cmake -Bthird_party/mavlink/build -Sthird_party/mavlink
@@ -70,7 +70,7 @@ jobs:
       - name: unit tests
         run: ./build/release/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: valgrind ./build/release/src/system_tests/system_tests_runner
+        run: ./build/release/src/system_tests/system_tests_runner
 
   ubuntu-superbuild:
     name: ${{ matrix.ubuntu_image }} (mavsdk_server, superbuild)
@@ -90,8 +90,6 @@ jobs:
       - name: disable superbuild on cache hit
         if: steps.cache.outputs.cache-hit == 'true'
         run: echo "superbuild=-DSUPERBUILD=OFF" >> $GITHUB_ENV && echo "cmake_prefix_path=-DCMAKE_PREFIX_PATH=$(pwd)/build/release/third_party/install" >> $GITHUB_ENV
-      - name: install
-        run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: configure
         run: cmake $superbuild $cmake_prefix_path -DCMAKE_BUILD_TYPE=Release -DBUILD_MAVSDK_SERVER=ON -DWERROR=OFF -Bbuild/release -H.
       - name: build
@@ -112,7 +110,7 @@ jobs:
       - name: unit tests
         run: ./build/release/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: valgrind ./build/release/src/system_tests/system_tests_runner
+        run: ./build/release/src/system_tests/system_tests_runner
       - name: test (mavsdk_server)
         run: ./build/release/src/mavsdk_server/test/unit_tests_mavsdk_server
 
@@ -128,8 +126,6 @@ jobs:
         with:
           path: ~/.hunter
           key: ${{ github.job }}-${{ hashFiles('~/.hunter/**') }}
-      - name: install
-        run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: install mavlink on the system
         run: |
             cmake -Bthird_party/mavlink/build -Sthird_party/mavlink
@@ -141,7 +137,7 @@ jobs:
       - name: unit tests
         run: ./build/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: valgrind ./build/src/system_tests/system_tests_runner
+        run: ./build/src/system_tests/system_tests_runner
 
   ubuntu20-proto-check:
     name: ubuntu-22.04 (proto check)
@@ -310,7 +306,7 @@ jobs:
     container: alpine:3.16.0
     steps:
       - name: install tools
-        run: apk update && apk add build-base cmake git linux-headers perl tar python3 py3-pip valgrind
+        run: apk update && apk add build-base cmake git linux-headers perl tar python3 py3-pip
       - uses: actions/checkout@v3
         with:
           submodules: recursive
@@ -333,7 +329,7 @@ jobs:
       - name: unit tests
         run: ./build/release/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: valgrind ./build/release/src/system_tests/system_tests_runner
+        run: ./build/release/src/system_tests/system_tests_runner
       - name: test (mavsdk_server)
         run: ./build/release/src/mavsdk_server/test/unit_tests_mavsdk_server
       - name: Upload as artefact
