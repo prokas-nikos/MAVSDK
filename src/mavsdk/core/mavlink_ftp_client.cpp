@@ -1,6 +1,7 @@
 #include "mavlink_ftp_client.h"
 #include "system_impl.h"
 #include "plugin_base.h"
+#include <algorithm>
 #include <fstream>
 
 #if defined(WINDOWS)
@@ -465,8 +466,13 @@ bool MavlinkFtpClient::upload_continue(Work& work, UploadItem& item)
 
         work.payload.opcode = work.last_opcode;
         work.payload.offset = item.bytes_transferred;
-        int bytes_read =
-            item.ifstream.readsome(reinterpret_cast<char*>(work.payload.data), max_data_length);
+
+        std::size_t bytes_to_read =
+            std::min(item.file_size - item.bytes_transferred, std::size_t(max_data_length));
+
+        item.ifstream.read(reinterpret_cast<char*>(work.payload.data), bytes_to_read);
+
+        int bytes_read = item.ifstream.gcount(); // Get the number of bytes actually read
 
         if (!item.ifstream) {
             item.callback(ClientResult::FileIoError, {});
