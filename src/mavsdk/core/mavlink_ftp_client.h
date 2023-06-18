@@ -338,7 +338,7 @@ private:
 
     LockedQueue<Work> _work_queue{};
 
-    bool _debugging{false};
+    bool _debugging{true}; // TODO: for now
 };
 
 } // namespace mavsdk

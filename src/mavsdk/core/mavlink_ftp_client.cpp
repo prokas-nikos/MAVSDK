@@ -473,6 +473,10 @@ bool MavlinkFtpClient::upload_continue(Work& work, UploadItem& item)
             return false;
         }
 
+        if (_debugging) {
+            LogDebug() << "Read " << bytes_read << " bytes";
+        }
+
         work.payload.size = bytes_read;
         item.bytes_transferred += bytes_read;
 
