@@ -132,7 +132,7 @@ TEST(SystemTest, FtpUploadBigFile)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.upload_async(
-           (temp_dir_to_upload / temp_file).string(),
+            (temp_dir_to_upload / temp_file).string(),
             "/",
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {

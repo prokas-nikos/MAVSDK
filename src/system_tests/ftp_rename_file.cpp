@@ -53,13 +53,12 @@ TEST(SystemTest, FtpRenameFile)
     // First we try to rename the file without the root directory set.
     // We expect that it does not exist as we don't have any permission.
     EXPECT_EQ(
-        ftp.rename(temp_file.string(), temp_file_renamed.string()),
-        Ftp::Result::FileDoesNotExist);
+        ftp.rename(temp_file.string(), temp_file_renamed.string()), Ftp::Result::FileDoesNotExist);
 
     // Now we set the root dir and expect it to work.
     ftp_server.set_root_dir(temp_dir_provided.string());
 
-    EXPECT_EQ(ftp.rename(temp_file, temp_file_renamed), Ftp::Result::Success);
+    EXPECT_EQ(ftp.rename(temp_file.string(), temp_file_renamed.string()), Ftp::Result::Success);
 
     EXPECT_TRUE(file_exists(temp_dir_provided / temp_file_renamed));
 }
