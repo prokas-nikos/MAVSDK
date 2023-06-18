@@ -56,9 +56,9 @@ TEST(SystemTest, FtpDownloadFile)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.download_async(
-            "" / temp_file, temp_dir_downloaded, [&prom](Ftp::Result result, Ftp::ProgressData) {
-                prom.set_value(result);
-            });
+            std::string("" / temp_file),
+            std::string(temp_dir_downloaded),
+            [&prom](Ftp::Result result, Ftp::ProgressData) { prom.set_value(result); });
 
         auto future_status = fut.wait_for(std::chrono::seconds(1));
         ASSERT_EQ(future_status, std::future_status::ready);
@@ -66,14 +66,14 @@ TEST(SystemTest, FtpDownloadFile)
     }
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.download_async(
-            "" / temp_file,
-            temp_dir_downloaded,
+            std::string("" / temp_file),
+            std::string(temp_dir_downloaded),
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
@@ -111,7 +111,7 @@ TEST(SystemTest, FtpDownloadBigFile)
     auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
 
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
@@ -127,8 +127,8 @@ TEST(SystemTest, FtpDownloadBigFile)
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
     ftp.download_async(
-        "" / temp_file,
-        temp_dir_downloaded,
+        std::string("" / temp_file),
+        std::string(temp_dir_downloaded),
         [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (result != Ftp::Result::Next) {
                 prom.set_value(result);
@@ -171,7 +171,7 @@ TEST(SystemTest, FtpDownloadBigFileLossy)
     auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
 
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
@@ -187,8 +187,8 @@ TEST(SystemTest, FtpDownloadBigFileLossy)
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
     ftp.download_async(
-        "" / temp_file,
-        temp_dir_downloaded,
+        std::string("" / temp_file),
+        std::string(temp_dir_downloaded),
         [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (result != Ftp::Result::Next) {
                 prom.set_value(result);
@@ -237,7 +237,7 @@ TEST(SystemTest, FtpDownloadStopAndTryAgain)
     auto ftp_server = FtpServer{
         mavsdk_autopilot.server_component_by_type(Mavsdk::ServerComponentType::Autopilot)};
 
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     auto maybe_system = mavsdk_groundstation.first_autopilot(10.0);
     ASSERT_TRUE(maybe_system);
@@ -253,8 +253,8 @@ TEST(SystemTest, FtpDownloadStopAndTryAgain)
     auto prom = std::promise<Ftp::Result>();
     auto fut = prom.get_future();
     ftp.download_async(
-        "" / temp_file,
-        temp_dir_downloaded,
+        std::string("" / temp_file),
+        std::string(temp_dir_downloaded),
         [&prom, &got_half](Ftp::Result result, Ftp::ProgressData progress_data) {
             if (progress_data.bytes_transferred > 500) {
                 got_half = true;
@@ -281,8 +281,8 @@ TEST(SystemTest, FtpDownloadStopAndTryAgain)
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.download_async(
-            "" / temp_file,
-            temp_dir_downloaded,
+            std::string("" / temp_file),
+            std::string(temp_dir_downloaded),
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 if (result != Ftp::Result::Next) {
                     prom.set_value(result);
@@ -329,14 +329,14 @@ TEST(SystemTest, FtpDownloadFileOutsideOfRoot)
     auto ftp = Ftp{system};
 
     // Now we set the root dir and expect it to work.
-    ftp_server.set_root_dir(temp_dir_provided);
+    ftp_server.set_root_dir(std::string(temp_dir_provided));
 
     {
         auto prom = std::promise<Ftp::Result>();
         auto fut = prom.get_future();
         ftp.download_async(
-            fs::path("") / ".." / temp_file,
-            temp_dir_downloaded,
+            std::string(fs::path("") / ".." / temp_file),
+            std::string(temp_dir_downloaded),
             [&prom](Ftp::Result result, Ftp::ProgressData progress_data) {
                 prom.set_value(result);
             });
