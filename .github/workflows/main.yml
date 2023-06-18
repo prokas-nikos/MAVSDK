@@ -90,6 +90,8 @@ jobs:
       - name: disable superbuild on cache hit
         if: steps.cache.outputs.cache-hit == 'true'
         run: echo "superbuild=-DSUPERBUILD=OFF" >> $GITHUB_ENV && echo "cmake_prefix_path=-DCMAKE_PREFIX_PATH=$(pwd)/build/release/third_party/install" >> $GITHUB_ENV
+      - name: install
+        run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: configure
         run: cmake $superbuild $cmake_prefix_path -DCMAKE_BUILD_TYPE=Release -DBUILD_MAVSDK_SERVER=ON -DWERROR=OFF -Bbuild/release -H.
       - name: build
@@ -110,7 +112,7 @@ jobs:
       - name: unit tests
         run: ./build/release/src/unit_tests/unit_tests_runner
       - name: system tests
-        run: ./build/release/src/system_tests/system_tests_runner
+        run: valgrind ./build/release/src/system_tests/system_tests_runner
       - name: test (mavsdk_server)
         run: ./build/release/src/mavsdk_server/test/unit_tests_mavsdk_server
 
